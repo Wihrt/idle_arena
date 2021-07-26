@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/wihrt/idle_arena/fight"
-	"github.com/wihrt/idle_arena/gladiator"
+	"github.com/wihrt/idle_arena/arena/fight"
+	"github.com/wihrt/idle_arena/arena/gladiator"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

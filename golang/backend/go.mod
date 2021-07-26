@@ -1,4 +1,4 @@
-module github.com/wihrt/idle_arena
+module github.com/wihrt/idle_arena/arena
 
 go 1.16
 

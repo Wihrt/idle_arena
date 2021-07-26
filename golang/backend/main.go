@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/wihrt/idle_arena/arena"
+	"github.com/wihrt/idle_arena/arena/arena"
 	"go.uber.org/zap"
 
 	"github.com/gorilla/mux"
