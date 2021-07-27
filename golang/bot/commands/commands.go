@@ -40,8 +40,11 @@ func HandleInteraction(e *gateway.InteractionCreateEvent) api.InteractionRespons
 	case "hire":
 		data = HireGladiator(e)
 	case "show":
+		data = GetGladiator(e)
 	case "fight":
+		data = FightGladiator(e)
 	case "fire":
+		data = FireGladiator(e)
 	}
 
 	return data

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/diamondburned/arikawa/v2/discord"
@@ -23,7 +22,7 @@ func main() {
 
 	token := os.Getenv("BOT_TOKEN")
 	if token == "" {
-		log.Fatalln("No $BOT_TOKEN given.")
+		zap.L().Fatal("No $BOT_TOKEN given")
 	}
 
 	bot, err := bot.NewArenaBot(token, appID, guildID)
@@ -62,7 +61,10 @@ func main() {
 func mustSnowflakeEnv(env string) discord.Snowflake {
 	s, err := discord.ParseSnowflake(os.Getenv(env))
 	if err != nil {
-		log.Fatalf("Invalid snowflake for $%s: %v", env, err)
+		zap.L().Fatal("Invalid Snowflake",
+			zap.String("value", env),
+			zap.Error(err),
+		)
 	}
 	return s
 }
