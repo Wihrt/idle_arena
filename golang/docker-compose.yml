@@ -1,0 +1,41 @@
+version: '2'
+
+services:
+    bot:
+        build: ./bot
+        container_name: bot
+        environment:
+            APP_ID: $APP_ID
+            GUILD_ID: $GUILD_ID
+            BOT_TOKEN: $BOT_TOKEN
+            ARENA_URL: http://backend:5000
+        networks:
+            - arenaFront
+        restart: always
+    backend:
+        build: ./backend
+        container_name: backend
+        environment:
+            MONGO_URL: mongodb://mongo:27017
+        ports:
+            - 5000:5000
+        networks:
+            - arenaFront
+            - arenaBack
+        restart: always
+    mongo:
+        image: mongo:latest
+        container_name: mongo
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: example
+        networks:
+            - arenaBack
+        restart: always
+
+networks:
+    arenaFront:
+        driver: bridge
+    arenaBack:
+        driver: bridge
+

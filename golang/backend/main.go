@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/wihrt/idle_arena/arena/arena"
 	"go.uber.org/zap"
@@ -12,7 +13,7 @@ import (
 
 func main() {
 
-	var mongoDBURI = "mongodb://localhost:27017"
+	var mongoDBURI = os.Getenv("MONGO_URL")
 
 	logger, _ := zap.NewProduction()
 	zap.ReplaceGlobals(logger)
@@ -21,9 +22,9 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/gladiator/", a.GetGladiator).Methods("GET")
-	router.HandleFunc("/gladiator/new", a.CreateGladiator).Methods("POST")
+	router.HandleFunc("/gladiator/hire", a.HireGladiator).Methods("POST")
 	router.HandleFunc("/gladiator/fight", a.FightGladiator).Methods("POST")
-	router.HandleFunc("/gladiator/kill", a.KillGladiator).Methods("DELETE")
+	router.HandleFunc("/gladiator/fire", a.FireGladiator).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe(":5000", router))
 }

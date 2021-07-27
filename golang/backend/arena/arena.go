@@ -138,7 +138,7 @@ func (a *Arena) GetGladiator(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *Arena) CreateGladiator(w http.ResponseWriter, r *http.Request) {
+func (a *Arena) HireGladiator(w http.ResponseWriter, r *http.Request) {
 	var (
 		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
 	)
@@ -242,7 +242,7 @@ func (a *Arena) FightGladiator(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (a *Arena) KillGladiator(w http.ResponseWriter, r *http.Request) {
+func (a *Arena) FireGladiator(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
