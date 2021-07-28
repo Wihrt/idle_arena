@@ -6,8 +6,14 @@ import (
 	"go.uber.org/zap"
 )
 
-func ResolveFight(player *gladiator.Gladiator) {
-	fightWon := Fight(player)
+func ResolveFight(player *gladiator.Gladiator) (bool, error) {
+	fightWon, err := Fight(player)
+	if err != nil {
+		zap.L().Error("Error when generating fight",
+			zap.Error(err),
+		)
+		return false, err
+	}
 	player.CurrentHealth = player.MaxHealth
 	if fightWon {
 		expGained := dice.Roll(1, 20, -1)
@@ -17,10 +23,18 @@ func ResolveFight(player *gladiator.Gladiator) {
 	if player.Experience >= player.ExperienceToNextLevel {
 		player.LevelUp()
 	}
+
+	return fightWon, nil
 }
 
-func Fight(player *gladiator.Gladiator) bool {
-	var enemy = gladiator.NewGladiator(player.Level)
+func Fight(player *gladiator.Gladiator) (bool, error) {
+	enemy, err := gladiator.NewGladiator(player.Level, "")
+	if err != nil {
+		zap.L().Error("Error when creating enemy",
+			zap.Error(err),
+		)
+		return false, err
+	}
 
 	zap.L().Info("Enemy created",
 		zap.Int("strength", enemy.Strength.Value),
@@ -44,7 +58,7 @@ func Fight(player *gladiator.Gladiator) bool {
 	}
 
 	// Determine if the player has won the fight
-	return player.CurrentHealth <= 0
+	return player.CurrentHealth <= 0, nil
 }
 
 func Round(player *gladiator.Gladiator, enemy *gladiator.Gladiator) bool {

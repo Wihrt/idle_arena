@@ -16,7 +16,7 @@ services:
         build: ./backend
         container_name: backend
         environment:
-            MONGO_URL: mongodb://mongo:27017
+            MONGO_URL: mongodb://$MONGODB_USER:$MONGODB_PASSWORD@mongo:27017/$MONGODB_DATABASE?authSource=admin
         ports:
             - 5000:5000
         networks:
@@ -27,10 +27,13 @@ services:
         image: mongo:latest
         container_name: mongo
         environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: example
+            MONGO_INITDB_ROOT_USERNAME: $MONGODB_ROOT_USER
+            MONGO_INITDB_ROOT_PASSWORD: $MONGODB_ROOT_PASSWORD
+            MONGODB_INIT_DATABASE: $MONGODB_DATABASE
         networks:
             - arenaBack
+        volumes:
+            - ./mongo:/docker-entrypoint-initdb.d/
         restart: always
 
 networks:

@@ -3,20 +3,23 @@ package arena
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/wihrt/idle_arena/arena/fight"
 	"github.com/wihrt/idle_arena/arena/gladiator"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
-var ErrNoManagerFound = errors.New("no manager found")
+const (
+	DB = "arena"
+	M  = "managers"
+	G  = "gladiators"
+)
 
 type Arena struct {
 	Mongo mongo.Client
@@ -49,21 +52,303 @@ func NewArena(mongoURI string) *Arena {
 	return a
 }
 
-func (a *Arena) getManager(mReq *Manager) (*Manager, error) {
+// Public functions
+func (a *Arena) GetManager(w http.ResponseWriter, r *http.Request) {
+
+	var (
+		m           = &Manager{}
+		splittedURL = strings.Split(r.RequestURI, "/")
+		managerID   = splittedURL[len(splittedURL)-1]
+	)
+
+	m, err := a.getManager(managerID)
+	if err != nil && err != mongo.ErrNoDocuments {
+		zap.L().Error("Cannot search manager",
+			zap.String("manager_id", managerID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+	if err == mongo.ErrNoDocuments {
+		m, err = a.createManager(managerID)
+		if err != nil {
+			zap.L().Error("Cannot create manager",
+				zap.String("manager_id", managerID),
+				zap.Error(err),
+			)
+			w.WriteHeader(500)
+			return
+		}
+	}
+
+	data, err := json.Marshal(m)
+	if err != nil {
+		zap.L().Error("Cannot marshal manager",
+			zap.String("manager_id", managerID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(data)
+}
+
+func (a *Arena) DeleteManager(w http.ResponseWriter, r *http.Request) {
+
+	var (
+		splittedURL = strings.Split(r.RequestURI, "/")
+		managerID   = splittedURL[len(splittedURL)-1]
+	)
+
+	deleted, err := a.deleteManager(managerID)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	if deleted {
+		w.WriteHeader(200)
+	} else {
+		w.WriteHeader(204)
+	}
+}
+
+func (a *Arena) NewGladiator(w http.ResponseWriter, r *http.Request) {
+	var (
+		splittedURL = strings.Split(r.RequestURI, "/")
+		managerID   = splittedURL[len(splittedURL)-2]
+	)
+
+	m, err := a.getManager(managerID)
+	if err == mongo.ErrNoDocuments {
+		w.WriteHeader(404)
+		return
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		w.WriteHeader(500)
+		return
+	}
+
+	g, err := gladiator.NewGladiator(1, managerID)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	_, err = a.createGladiator(g)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	m.Gladiators = append(m.Gladiators, g.GladiatorID)
+	err = a.updateManager(m)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	data, err := json.Marshal(g)
+	if err != nil {
+		zap.L().Error("Cannot marshal gladiator",
+			zap.String("manager_id", managerID),
+			zap.String("gladiator_id", g.GladiatorID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(data)
+}
+
+func (a *Arena) GetGladiators(w http.ResponseWriter, r *http.Request) {
+	var (
+		splittedURL = strings.Split(r.RequestURI, "/")
+		managerID   = splittedURL[len(splittedURL)-2]
+	)
+
+	_, err := a.getManager(managerID)
+	if err == mongo.ErrNoDocuments {
+		zap.L().Error("Manager does not exists",
+			zap.String("manager_id", managerID),
+			zap.Error(err),
+		)
+		w.WriteHeader(404)
+		return
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		zap.L().Error("Cannot search manager",
+			zap.String("manager_id", managerID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	g, err := a.getGladiators(managerID)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	data, err := json.Marshal(g)
+	if err != nil {
+		zap.L().Error("Cannot marshal gladiators",
+			zap.String("manager_id", managerID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(data)
+}
+
+func (a *Arena) GetGladiator(w http.ResponseWriter, r *http.Request) {
+	var (
+		splittedURL = strings.Split(r.RequestURI, "/")
+		managerID   = splittedURL[len(splittedURL)-3]
+		gladiatorID = splittedURL[len(splittedURL)-1]
+	)
+
+	_, err := a.getManager(managerID)
+	if err == mongo.ErrNoDocuments {
+		w.WriteHeader(404)
+		return
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		w.WriteHeader(500)
+		return
+	}
+
+	g, err := a.getGladiator(managerID, gladiatorID)
+	if err == mongo.ErrNoDocuments {
+		w.WriteHeader(404)
+		return
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		w.WriteHeader(500)
+		return
+	}
+
+	data, err := json.Marshal(g)
+	if err != nil {
+		zap.L().Error("Cannot marshal gladiator",
+			zap.String("manager_id", managerID),
+			zap.String("gladiator_id", gladiatorID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(data)
+}
+
+func (a *Arena) FightGladiator(w http.ResponseWriter, r *http.Request) {
+	var (
+		splittedURL = strings.Split(r.RequestURI, "/")
+		managerID   = splittedURL[len(splittedURL)-4]
+		gladiatorID = splittedURL[len(splittedURL)-2]
+	)
+
+	_, err := a.getManager(managerID)
+	if err == mongo.ErrNoDocuments {
+		w.WriteHeader(404)
+		return
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		w.WriteHeader(500)
+		return
+	}
+
+	g, err := a.getGladiator(managerID, gladiatorID)
+	if err == mongo.ErrNoDocuments {
+		w.WriteHeader(404)
+		return
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		w.WriteHeader(500)
+		return
+	}
+
+	fightWon, err := fight.ResolveFight(g)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	if fightWon {
+		err := a.updateGladiator(g)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+	}
+
+	data, err := json.Marshal(fightWon)
+	if err != nil {
+		zap.L().Error("Cannot marshal boolean",
+			zap.Bool("fight_won", fightWon),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(data)
+}
+
+func (a *Arena) DeleteGladiator(w http.ResponseWriter, r *http.Request) {
+	var (
+		splittedURL = strings.Split(r.RequestURI, "/")
+		managerID   = splittedURL[len(splittedURL)-3]
+		gladiatorID = splittedURL[len(splittedURL)-1]
+	)
+
+	_, err := a.getManager(managerID)
+	if err == mongo.ErrNoDocuments {
+		w.WriteHeader(404)
+		return
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		w.WriteHeader(500)
+		return
+	}
+
+	deleted, err := a.deleteGladiator(managerID, gladiatorID)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	w.WriteHeader(204)
+	if deleted {
+		w.WriteHeader(200)
+	}
+}
+
+// Private functions
+func (a *Arena) getManager(managerID string) (*Manager, error) {
 	var (
 		m           Manager
 		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
 	)
 	defer cancel()
 
-	err := a.Mongo.Database("arena").Collection("managers").FindOne(ctx, bson.M{"user_id": m.UserID, "guild_id": m.GuildID}).Decode(&m)
+	err := a.Mongo.Database(DB).Collection(M).FindOne(ctx, bson.M{"manager_id": managerID}).Decode(&m)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			zap.L().Warn("No documents found",
-				zap.String("database", "arena"),
-				zap.String("collection", "managers"),
-				zap.String("user_id", m.UserID),
-				zap.String("guild_id", m.GuildID),
+				zap.String("database", DB),
+				zap.String("collection", M),
 				zap.Error(err),
 			)
 			return &m, mongo.ErrNoDocuments
@@ -71,216 +356,188 @@ func (a *Arena) getManager(mReq *Manager) (*Manager, error) {
 		zap.L().Error("Cannot search managers",
 			zap.String("database", "arena"),
 			zap.String("collection", "managers"),
-			zap.String("user_id", m.UserID),
-			zap.String("guild_id", m.GuildID),
 			zap.Error(err),
 		)
-		return &m, mongo.ErrNoDocuments
+		return &m, err
 	}
 	return &m, nil
 }
 
-func (a *Arena) getGladiator(m *Manager) (*gladiator.Gladiator, error) {
+func (a *Arena) createManager(managerID string) (*Manager, error) {
+	var (
+		m           = NewManager(managerID)
+		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
+	)
+
+	defer cancel()
+
+	_, err := a.Mongo.Database(DB).Collection(M).InsertOne(ctx, *m)
+	if err != nil {
+		zap.L().Error("Cannot create manager in MongoDB",
+			zap.String("manager_id", managerID),
+			zap.Error(err),
+		)
+		return m, err
+	}
+
+	return m, nil
+}
+
+func (a *Arena) updateManager(m *Manager) error {
+	var ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	res := a.Mongo.Database(DB).Collection(M).FindOneAndUpdate(ctx, bson.M{"manager_id": m.ManagerID}, bson.M{"$set": *m})
+
+	if res.Err() != nil {
+		if res.Err() == mongo.ErrNoDocuments {
+			zap.L().Warn("No documents found",
+				zap.String("manager_id", m.ManagerID),
+				zap.Error(res.Err()),
+			)
+			return mongo.ErrNoDocuments
+		}
+		zap.L().Error("Cannot update manager",
+			zap.String("manager_id", m.ManagerID),
+			zap.Error(res.Err()),
+		)
+		return res.Err()
+	}
+
+	return nil
+
+}
+
+func (a *Arena) deleteManager(managerID string) (bool, error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	res, err := a.Mongo.Database(DB).Collection(M).DeleteOne(ctx, bson.M{"manager_id": managerID})
+	if err != nil {
+		zap.L().Error("Cannot delete manager",
+			zap.String("manager_id", managerID),
+			zap.Error(err),
+		)
+		return false, err
+	}
+
+	return res.DeletedCount > 0, nil
+}
+
+func (a *Arena) getGladiators(managerID string) ([]gladiator.Gladiator, error) {
+
+	var (
+		g           []gladiator.Gladiator
+		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
+	)
+	defer cancel()
+
+	cursor, err := a.Mongo.Database(DB).Collection(G).Find(ctx, bson.M{"manager_id": managerID})
+	if err != nil {
+		zap.L().Error("Cannot search gladiators",
+			zap.String("manager_id", managerID),
+			zap.Error(err),
+		)
+		return g, err
+	}
+
+	err = cursor.All(ctx, &g)
+	if err != nil {
+		zap.L().Error("Cannot decode gladiators",
+			zap.String("manager_id", managerID),
+			zap.Error(err),
+		)
+		return g, err
+	}
+	return g, nil
+}
+
+func (a *Arena) getGladiator(managerID string, gladiatorID string) (*gladiator.Gladiator, error) {
+
 	var (
 		g           gladiator.Gladiator
 		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
 	)
 	defer cancel()
 
-	err := a.Mongo.Database("arena").Collection("gladiators").FindOne(ctx, bson.M{"_id": m.Gladiators[0]}).Decode(&g)
+	err := a.Mongo.Database(DB).Collection(G).FindOne(ctx, bson.M{"manager_id": managerID, "gladiator_id": gladiatorID}).Decode(&g)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			zap.L().Warn("No documents found",
-				zap.String("database", "arena"),
-				zap.String("collection", "gladiators"),
-				zap.String("id", m.Gladiators[0]),
+				zap.String("database", DB),
+				zap.String("collection", M),
 				zap.Error(err),
 			)
 			return &g, mongo.ErrNoDocuments
 		}
-		zap.L().Warn("Cannot search gladiators",
+		zap.L().Error("Cannot search managers",
 			zap.String("database", "arena"),
-			zap.String("collection", "gladiators"),
-			zap.String("id", m.Gladiators[0]),
+			zap.String("collection", "managers"),
 			zap.Error(err),
 		)
-		return &g, mongo.ErrNoDocuments
+		return &g, err
 	}
 	return &g, nil
 }
 
-func (a *Arena) GetGladiator(w http.ResponseWriter, r *http.Request) {
-	mReq := decodeManager(r.Body)
-	m, err := a.getManager(mReq)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			w.WriteHeader(404)
-			return
-		}
+func (a *Arena) createGladiator(g *gladiator.Gladiator) (*gladiator.Gladiator, error) {
 
-	}
-	g, err := a.getGladiator(m)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			w.WriteHeader(404)
-			return
-		}
-	}
-
-	w.WriteHeader(200)
-	data, err := json.Marshal(g)
-	if err != nil {
-		zap.L().Error("Cannot encode data")
-	}
-	_, err = w.Write(data)
-	if err != nil {
-		zap.L().Error("Cannot write data")
-	}
-}
-
-func (a *Arena) HireGladiator(w http.ResponseWriter, r *http.Request) {
 	var (
 		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
 	)
+
 	defer cancel()
 
-	mReq := decodeManager(r.Body)
-	m, err := a.getManager(mReq)
-	if err == mongo.ErrNoDocuments {
-		_, err := a.Mongo.Database("arena").Collection("managers").InsertOne(ctx, *mReq)
-		if err != nil {
-			zap.L().Error("Cannot create manager in MongoDB",
-				zap.String("guild_id", mReq.GuildID),
-				zap.String("user_id", mReq.UserID),
-				zap.Error(err),
-			)
-			w.WriteHeader(500)
-			return
-		}
-		m = mReq
-	}
+	_, err := a.Mongo.Database(DB).Collection(G).InsertOne(ctx, *g)
 	if err != nil {
-		zap.L().Error("Cannot search in MongoDB",
-			zap.String("user_id", mReq.UserID),
-			zap.String("guild_id", mReq.GuildID),
+		zap.L().Error("Cannot create gladiatro in MongoDB",
+			zap.String("gladiator_id", g.GladiatorID),
 			zap.Error(err),
 		)
-		w.WriteHeader(500)
-		return
+		return g, err
 	}
 
-	if len(m.Gladiators) >= 1 {
-		w.WriteHeader(401)
-		return
-	}
+	return g, nil
+}
 
-	g := gladiator.NewGladiator(1)
-	resInsert, err := a.Mongo.Database("arena").Collection("gladiators").InsertOne(ctx, g)
+func (a *Arena) updateGladiator(g *gladiator.Gladiator) error {
+	var ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	res := a.Mongo.Database(DB).Collection(G).FindOneAndUpdate(ctx, bson.M{"manager_id": g.ManagerID, "gladiator_id": g.GladiatorID}, bson.M{"$set": *g})
+
+	if res.Err() != nil {
+		if res.Err() == mongo.ErrNoDocuments {
+			zap.L().Warn("No documents found",
+				zap.String("manager_id", g.ManagerID),
+				zap.String("gladiator_id", g.GladiatorID),
+				zap.Error(res.Err()),
+			)
+			return mongo.ErrNoDocuments
+		}
+		zap.L().Error("Cannot update gladiator",
+			zap.String("manager_id", g.ManagerID),
+			zap.String("gladiator_id", g.GladiatorID),
+			zap.Error(res.Err()),
+		)
+		return res.Err()
+	}
+	return nil
+}
+
+func (a *Arena) deleteGladiator(managerID string, gladiatorID string) (bool, error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	res, err := a.Mongo.Database(DB).Collection(G).DeleteOne(ctx, bson.M{"manager_id": managerID, "gladiator_id": gladiatorID})
 	if err != nil {
-		zap.L().Error("Cannot add gladiator to arena",
+		zap.L().Error("Cannot delete gladiator",
+			zap.String("manager_id", managerID),
+			zap.String("gladiator_id", gladiatorID),
 			zap.Error(err),
 		)
-		w.WriteHeader(500)
-		return
-	}
-	m.Gladiators = append(m.Gladiators, resInsert.InsertedID.(primitive.ObjectID).String())
-	resUpdate := a.Mongo.Database("arena").Collection("managers").FindOneAndReplace(ctx, bson.M{"guild_id": m.GuildID, "user_id": m.UserID}, m)
-	if resUpdate.Err() != nil {
-		zap.L().Error("Cannot update manager",
-			zap.String("guild_id", m.GuildID),
-			zap.String("user_id", m.UserID),
-			zap.Error(resUpdate.Err()),
-		)
-		w.WriteHeader(500)
-		return
+		return false, err
 	}
 
-	w.WriteHeader(200)
-	data, err := json.Marshal(g)
-	if err != nil {
-		zap.L().Error("Cannot decode gladiator")
-	}
-	_, err = w.Write(data)
-	if err != nil {
-		zap.L().Error("Cannot write gladiator data")
-	}
-}
-
-func (a *Arena) FightGladiator(w http.ResponseWriter, r *http.Request) {
-	var (
-		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
-	)
-	defer cancel()
-
-	mReq := decodeManager(r.Body)
-	m, err := a.getManager(mReq)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			w.WriteHeader(404)
-		}
-	}
-	g, err := a.getGladiator(m)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			w.WriteHeader(404)
-			return
-		}
-	}
-
-	fight.ResolveFight(g)
-	resUpdate := a.Mongo.Database("arena").Collection("managers").FindOneAndReplace(ctx, bson.M{"_id": m.Gladiators[0]}, m)
-	if resUpdate.Err() != nil {
-		zap.L().Error("Cannot update manager",
-			zap.String("guild_id", m.GuildID),
-			zap.String("user_id", m.UserID),
-			zap.Error(resUpdate.Err()),
-		)
-		w.WriteHeader(500)
-		return
-	}
-	w.WriteHeader(200)
-
-}
-
-func (a *Arena) FireGladiator(w http.ResponseWriter, r *http.Request) {
-
-	var (
-		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
-	)
-	defer cancel()
-
-	mReq := decodeManager(r.Body)
-	m, err := a.getManager(mReq)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			w.WriteHeader(404)
-		}
-	}
-
-	for _, id := range m.Gladiators {
-		res, err := a.Mongo.Database("arena").Collection("gladiators").DeleteOne(ctx, bson.M{"_id": id})
-		if err != nil {
-			zap.L().Error("Cannot delete gladiator",
-				zap.String("id", id),
-				zap.Error(err),
-			)
-		}
-		if res.DeletedCount > 0 {
-			zap.L().Info("Gladiator deleted",
-				zap.String("ID", id))
-		} else {
-			zap.L().Warn("No gladiator deleted")
-		}
-	}
-
-	resUpdate := a.Mongo.Database("arena").Collection("managers").FindOneAndReplace(ctx, bson.M{"guild_id": m.GuildID, "user_id": m.UserID}, m)
-	if resUpdate.Err() != nil {
-		zap.L().Error("Cannot update manager",
-			zap.String("guild_id", m.GuildID),
-			zap.String("user_id", m.UserID),
-			zap.Error(resUpdate.Err()),
-		)
-	}
-
-	w.WriteHeader(200)
+	return res.DeletedCount > 0, nil
 }

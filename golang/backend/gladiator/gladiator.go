@@ -1,28 +1,46 @@
 package gladiator
 
-import "github.com/wihrt/idle_arena/arena/dice"
+import (
+	"crypto/sha256"
+	"encoding/hex"
+
+	"github.com/wihrt/idle_arena/arena/dice"
+	"go.uber.org/zap"
+)
 
 type Gladiator struct {
-	Armor                 *Armor         `json:"armor"`
-	ArmorClass            int            `json:"armor_class"`
-	Constitution          *Caracteristic `json:"constitution"`
-	CurrentHealth         int            `json:"current_health"`
-	Dexterity             *Caracteristic `json:"dexterity"`
-	Experience            int            `json:"experience"`
-	ExperienceToNextLevel int            `json:"experience_to_next_level"`
-	Level                 int            `json:"level"`
-	MaxHealth             int            `json:"max_health"`
-	Name                  string         `json:"name"`
-	Strength              *Caracteristic `json:"strength"`
-	Weapon                *Weapon        `json:"weapon"`
+	ManagerID             string         `json:"manager_id" bson:"manager_id"`
+	GladiatorID           string         `json:"gladiator_id" bson:"gladiator_id"`
+	Armor                 *Armor         `json:"armor" bson:"armor"`
+	ArmorClass            int            `json:"armor_class" bson:"armor_class"`
+	Constitution          *Caracteristic `json:"constitution" bson:"constitution"`
+	CurrentHealth         int            `json:"current_health" bson:"current_health"`
+	Dexterity             *Caracteristic `json:"dexterity" bson:"dexterity"`
+	Experience            int            `json:"experience" bson:"experience"`
+	ExperienceToNextLevel int            `json:"experience_to_next_level" bson:"experience_to_next_level"`
+	Level                 int            `json:"level" bson:"level"`
+	MaxHealth             int            `json:"max_health" bson:"max_health"`
+	Name                  string         `json:"name" bson:"name"`
+	Strength              *Caracteristic `json:"strength" bson:"strength"`
+	Weapon                *Weapon        `json:"weapon" bson:"weapon"`
 }
 
-func NewGladiator(level int) *Gladiator {
+func NewGladiator(level int, managerID string) (*Gladiator, error) {
 	g := &Gladiator{
-		Level:                 1,
 		Experience:            0,
 		ExperienceToNextLevel: calculateNextLevel(1),
+		Level:                 1,
+		ManagerID:             managerID,
 	}
+
+	name, err := NewRandomName()
+	if err != nil {
+		zap.L().Error("Error when generating new name",
+			zap.Error(err),
+		)
+		return g, err
+	}
+	g.Name = name
 
 	g.Strength = NewCaracteristic("strength", 4, 6, 3)
 	g.Dexterity = NewCaracteristic("dexterity", 4, 6, 3)
@@ -43,7 +61,14 @@ func NewGladiator(level int) *Gladiator {
 		g.Experience = 0
 	}
 
-	return g
+	g.generateID()
+
+	return g, nil
+}
+
+func (g *Gladiator) generateID() {
+	h := sha256.Sum256([]byte(g.ManagerID + "." + g.Name))
+	g.GladiatorID = hex.EncodeToString(h[:])
 }
 
 func (g *Gladiator) LevelUp() {
