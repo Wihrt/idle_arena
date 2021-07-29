@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -12,104 +13,167 @@ import (
 	"go.uber.org/zap"
 )
 
-func HireGladiator(e *gateway.InteractionCreateEvent) api.InteractionResponse {
+func HireGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, error) {
 
-	url := os.Getenv("ARENA_URL")
-	a := arena.NewArenaClient(url)
-	g, err := a.HireGladiator(e)
+	var (
+		formatMsg = "You have hired %s !"
+		msg       string
+		mID       = generateManagerID(e)
+		url       = os.Getenv("ARENA_URL")
+		a         = arena.NewArenaClient(url)
+		data      api.InteractionResponse
+	)
+
+	g, err := a.HireGladiator(mID)
 	if err != nil {
 		zap.L().Error("Cannot hire a new gladiator",
 			zap.String("UserID", e.Member.User.ID.String()),
 			zap.String("GuildID", e.GuildID.String()),
 			zap.Error(err),
 		)
+		return data, err
 	}
 
-	embed := GladiatorToEmbed(g)
+	msg = fmt.Sprintf(formatMsg, g.Name)
+	embed := gladiatorToEmbed(g)
 
-	data := api.InteractionResponse{
+	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Embeds: []discord.Embed{embed},
+			Content: msg,
+			Embeds:  []discord.Embed{embed},
 		},
 	}
 
-	return data
+	return data, nil
 }
 
-func GetGladiator(e *gateway.InteractionCreateEvent) api.InteractionResponse {
+func GetGladiators(e *gateway.InteractionCreateEvent) (api.InteractionResponse, error) {
 
-	url := os.Getenv("ARENA_URL")
-	a := arena.NewArenaClient(url)
-	g, err := a.GetGladiator(e)
-	if err != nil {
-		zap.L().Error("Cannot get gladiator",
-			zap.String("UserID", e.Member.User.ID.String()),
-			zap.String("GuildID", e.GuildID.String()),
-			zap.Error(err),
-		)
+	var (
+		gArray []gladiator.Gladiator
+		eArray []discord.Embed
+		mID    = generateManagerID(e)
+		name   = fetchValue(e.Data.Options, "name")
+		gID    = generateGladiatorID(mID, name)
+		url    = os.Getenv("ARENA_URL")
+		a      = arena.NewArenaClient(url)
+		data   api.InteractionResponse
+	)
+
+	if len(e.Data.Options) == 1 {
+		g, err := a.GetGladiator(mID, gID)
+		if err != nil {
+			zap.L().Error("Cannot get gladiators",
+				zap.String("UserID", e.Member.User.ID.String()),
+				zap.String("GuildID", e.GuildID.String()),
+				zap.Error(err),
+			)
+			return data, err
+		}
+		gArray = append(gArray, g)
+	} else {
+		g, err := a.GetGladiators(mID)
+		if err != nil {
+			zap.L().Error("Cannot get gladiator",
+				zap.String("UserID", e.Member.User.ID.String()),
+				zap.String("GuildID", e.GuildID.String()),
+				zap.Error(err),
+			)
+			return data, err
+		}
+		gArray = append(gArray, g...)
 	}
 
-	embed := GladiatorToEmbed(g)
+	for _, g := range gArray {
+		e := gladiatorToEmbed(g)
+		eArray = append(eArray, e)
+	}
 
-	data := api.InteractionResponse{
+	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Embeds: []discord.Embed{embed},
+			Embeds: eArray,
 		},
 	}
 
-	return data
+	return data, nil
 }
 
-func FightGladiator(e *gateway.InteractionCreateEvent) api.InteractionResponse {
+func FightGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, error) {
 
-	url := os.Getenv("ARENA_URL")
-	a := arena.NewArenaClient(url)
-	g, err := a.FightGladiator(e)
+	var (
+		formatMsg = "Your gladiator %s has %s the fight !"
+		msg       string
+		mID       = generateManagerID(e)
+		name      = fetchValue(e.Data.Options, "name")
+		gID       = generateGladiatorID(mID, name)
+		url       = os.Getenv("ARENA_URL")
+		a         = arena.NewArenaClient(url)
+		data      api.InteractionResponse
+	)
+
+	f, err := a.FightGladiator(mID, gID)
 	if err != nil {
 		zap.L().Error("Cannot fight gladiator",
 			zap.String("UserID", e.Member.User.ID.String()),
 			zap.String("GuildID", e.GuildID.String()),
 			zap.Error(err),
 		)
+		return data, err
 	}
 
-	embed := GladiatorToEmbed(g)
+	if f.FightWon {
+		msg = fmt.Sprintf(formatMsg, f.Gladiator.Name, "won")
+	} else {
+		msg = fmt.Sprintf(formatMsg, f.Gladiator.Name, "lost")
+	}
 
-	data := api.InteractionResponse{
+	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Embeds: []discord.Embed{embed},
+			Content: msg,
 		},
 	}
 
-	return data
+	return data, nil
 }
 
-func FireGladiator(e *gateway.InteractionCreateEvent) api.InteractionResponse {
-	url := os.Getenv("ARENA_URL")
-	a := arena.NewArenaClient(url)
-	err := a.FireGladiator(e)
+func FireGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, error) {
+
+	var (
+		formatMsg = "You have fired %s !"
+		msg       string
+		mID       = generateManagerID(e)
+		name      = fetchValue(e.Data.Options, "name")
+		gID       = generateGladiatorID(mID, name)
+		url       = os.Getenv("ARENA_URL")
+		a         = arena.NewArenaClient(url)
+		data      api.InteractionResponse
+	)
+	err := a.FireGladiator(mID, gID)
 	if err != nil {
 		zap.L().Error("Cannot fire gladiator",
 			zap.String("UserID", e.Member.User.ID.String()),
 			zap.String("GuildID", e.GuildID.String()),
 			zap.Error(err),
 		)
+		return data, err
 	}
 
-	data := api.InteractionResponse{
+	msg = fmt.Sprintf(formatMsg, name)
+
+	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Content: "Gladiator fired",
+			Content: msg,
 		},
 	}
 
-	return data
+	return data, err
 }
 
-func GladiatorToEmbed(g gladiator.Gladiator) discord.Embed {
+func gladiatorToEmbed(g gladiator.Gladiator) discord.Embed {
 
 	embed := discord.Embed{
 		Title: g.Name,
@@ -125,4 +189,9 @@ func GladiatorToEmbed(g gladiator.Gladiator) discord.Embed {
 	}
 
 	return embed
+}
+
+func generateGladiatorID(managerID string, gladiatorName string) string {
+	id := gladiator.GenerateID(managerID, gladiatorName)
+	return id
 }

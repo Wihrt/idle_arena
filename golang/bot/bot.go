@@ -76,8 +76,6 @@ func (a *ArenaBot) RegisterCommands(commands []api.CreateCommandData) {
 	}
 }
 
-// To run, do `APP_ID="APP ID" GUILD_ID="GUILD ID" BOT_TOKEN="TOKEN HERE" go run .`
-
 func init() {
 
 	cfg := logging.GetConfig()
@@ -104,12 +102,19 @@ func main() {
 
 	bot.AddIntents([]gateway.Intents{gateway.IntentGuilds, gateway.IntentGuildMessages})
 	bot.Session.AddHandler(func(e *gateway.InteractionCreateEvent) {
-		data := commands.HandleInteraction(e)
-		err := bot.Session.RespondInteraction(e.ID, e.Token, data)
+		data, err := commands.HandleInteraction(e)
+		if err != nil {
+			zap.L().Error("Failed to handle command",
+				zap.Error(err),
+			)
+			return
+		}
+		err = bot.Session.RespondInteraction(e.ID, e.Token, data)
 		if err != nil {
 			zap.L().Error("Failed to send interaction callback",
 				zap.Error(err),
 			)
+			return
 		}
 	})
 

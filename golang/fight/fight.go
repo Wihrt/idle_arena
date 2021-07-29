@@ -6,25 +6,36 @@ import (
 	"go.uber.org/zap"
 )
 
-func ResolveFight(player *gladiator.Gladiator) (bool, error) {
-	fightWon, err := Fight(player)
+type FightResult struct {
+	FightWon  bool                 `json:"fight_won"`
+	Gladiator *gladiator.Gladiator `json:"gladiator"`
+}
+
+func ResolveFight(g *gladiator.Gladiator) (*FightResult, error) {
+	var fightResult = &FightResult{
+		FightWon:  false,
+		Gladiator: g}
+
+	fightWon, err := Fight(g)
 	if err != nil {
 		zap.L().Error("Error when generating fight",
 			zap.Error(err),
 		)
-		return false, err
+		return fightResult, err
 	}
-	player.CurrentHealth = player.MaxHealth
+
+	fightResult.FightWon = fightWon
+	g.CurrentHealth = g.MaxHealth
 	if fightWon {
 		expGained := dice.Roll(1, 20, -1)
-		player.Experience += expGained
+		g.Experience += expGained
 	}
 
-	if player.Experience >= player.ExperienceToNextLevel {
-		player.LevelUp()
+	if g.Experience >= g.ExperienceToNextLevel {
+		g.LevelUp()
 	}
 
-	return fightWon, nil
+	return fightResult, nil
 }
 
 func Fight(player *gladiator.Gladiator) (bool, error) {

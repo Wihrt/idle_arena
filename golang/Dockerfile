@@ -13,4 +13,4 @@ FROM alpine:3.14
 ARG GOBINARY
 
 COPY --from=builder /build/$GOBINARY /usr/bin
-RUN chmod a+x /usr/bin/$GOBINARY 
+RUN chmod a+x /usr/bin/$GOBINARY

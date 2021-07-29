@@ -67,8 +67,7 @@ func NewGladiator(level int, managerID string) (*Gladiator, error) {
 }
 
 func (g *Gladiator) generateID() {
-	h := sha256.Sum256([]byte(g.ManagerID + "." + g.Name))
-	g.GladiatorID = hex.EncodeToString(h[:])
+	g.GladiatorID = GenerateID(g.ManagerID, g.Name)
 }
 
 func (g *Gladiator) LevelUp() {
@@ -120,4 +119,10 @@ func (g *Gladiator) Damage() int {
 	}
 
 	return result
+}
+
+func GenerateID(managerID string, name string) string {
+	h := sha256.Sum256([]byte(managerID + "." + name))
+	id := hex.EncodeToString(h[:])
+	return id
 }
