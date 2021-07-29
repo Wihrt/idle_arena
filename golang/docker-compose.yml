@@ -2,21 +2,31 @@ version: '2'
 
 services:
     bot:
-        build: ./bot
+        build:
+            context: .
+            args:
+                GOBINARY: arenaBot
+                GOFILE: ./bot/bot.go
         container_name: bot
         environment:
             APP_ID: $APP_ID
             GUILD_ID: $GUILD_ID
             BOT_TOKEN: $BOT_TOKEN
             ARENA_URL: http://backend:5000
+        entrypoint: ["/usr/bin/arenaBot"]
         networks:
             - arenaFront
         restart: always
     backend:
-        build: ./backend
+        build:
+            context: .
+            args:
+                GOBINARY: arenaBackend
+                GOFILE: ./backend/backend.go
         container_name: backend
         environment:
             MONGO_URL: mongodb://$MONGODB_USER:$MONGODB_PASSWORD@mongo:27017/$MONGODB_DATABASE?authSource=admin
+        entrypoint: ["/usr/bin/arenaBackend"]
         ports:
             - 5000:5000
         networks:

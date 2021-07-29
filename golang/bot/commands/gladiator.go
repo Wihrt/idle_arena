@@ -2,11 +2,13 @@ package commands
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/diamondburned/arikawa/v2/api"
 	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/arikawa/v2/gateway"
-	"github.com/wihrt/idle_arena/bot/arena"
+	"github.com/wihrt/idle_arena/arena"
+	"github.com/wihrt/idle_arena/gladiator"
 	"go.uber.org/zap"
 )
 
@@ -58,7 +60,6 @@ func GetGladiator(e *gateway.InteractionCreateEvent) api.InteractionResponse {
 	}
 
 	return data
-
 }
 
 func FightGladiator(e *gateway.InteractionCreateEvent) api.InteractionResponse {
@@ -108,18 +109,18 @@ func FireGladiator(e *gateway.InteractionCreateEvent) api.InteractionResponse {
 	return data
 }
 
-func GladiatorToEmbed(g arena.Gladiator) discord.Embed {
+func GladiatorToEmbed(g gladiator.Gladiator) discord.Embed {
 
 	embed := discord.Embed{
 		Title: g.Name,
 		Fields: []discord.EmbedField{
-			{Name: g.Strength.Name, Value: string(g.Strength.Value)},
-			{Name: g.Dexterity.Name, Value: string(g.Dexterity.Value)},
-			{Name: g.Constitution.Name, Value: string(g.Constitution.Value)},
+			{Name: g.Strength.Name, Value: strconv.Itoa(g.Strength.Value)},
+			{Name: g.Dexterity.Name, Value: strconv.Itoa(g.Dexterity.Value)},
+			{Name: g.Constitution.Name, Value: strconv.Itoa(g.Constitution.Value)},
 			{Name: "Weapon", Value: g.Weapon.Name},
 			{Name: "Armor", Value: g.Armor.Name},
-			{Name: "Armor Class", Value: string(g.ArmorClass)},
-			{Name: "Experience", Value: string(g.Experience) + "/" + string(g.ExperienceToNextLevel)},
+			{Name: "Armor Class", Value: strconv.Itoa(g.ArmorClass)},
+			{Name: "Experience", Value: strconv.Itoa(g.Experience) + "/" + strconv.Itoa(g.ExperienceToNextLevel)},
 		},
 	}
 

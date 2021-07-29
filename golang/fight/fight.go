@@ -1,8 +1,8 @@
 package fight
 
 import (
-	"github.com/wihrt/idle_arena/arena/dice"
-	"github.com/wihrt/idle_arena/arena/gladiator"
+	"github.com/wihrt/idle_arena/dice"
+	"github.com/wihrt/idle_arena/gladiator"
 	"go.uber.org/zap"
 )
 

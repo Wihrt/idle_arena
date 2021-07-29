@@ -1,8 +1,11 @@
 package arena
 
 import (
+	"time"
+
 	"github.com/diamondburned/arikawa/v2/gateway"
 	"github.com/levigross/grequests"
+	"github.com/wihrt/idle_arena/gladiator"
 	"go.uber.org/zap"
 )
 
@@ -18,10 +21,10 @@ func NewArenaClient(url string) *ArenaClient {
 	return a
 }
 
-func (a *ArenaClient) HireGladiator(e *gateway.InteractionCreateEvent) (Gladiator, error) {
+func (a *ArenaClient) HireGladiator(e *gateway.InteractionCreateEvent) (gladiator.Gladiator, error) {
 
 	var (
-		g Gladiator
+		g gladiator.Gladiator
 	)
 
 	zap.L().Info("Hiring a new gladiator",
@@ -34,7 +37,7 @@ func (a *ArenaClient) HireGladiator(e *gateway.InteractionCreateEvent) (Gladiato
 			"user_id":  e.Member.User.ID.String(),
 			"guild_id": e.GuildID.String(),
 		},
-		RequestTimeout: 5,
+		RequestTimeout: 5 * time.Second,
 	})
 
 	if err != nil {
@@ -54,10 +57,10 @@ func (a *ArenaClient) HireGladiator(e *gateway.InteractionCreateEvent) (Gladiato
 
 }
 
-func (a *ArenaClient) GetGladiator(e *gateway.InteractionCreateEvent) (Gladiator, error) {
+func (a *ArenaClient) GetGladiator(e *gateway.InteractionCreateEvent) (gladiator.Gladiator, error) {
 
 	var (
-		g Gladiator
+		g gladiator.Gladiator
 	)
 
 	zap.L().Info("Get gladiator",
@@ -70,7 +73,7 @@ func (a *ArenaClient) GetGladiator(e *gateway.InteractionCreateEvent) (Gladiator
 			"user_id":  e.Member.User.ID.String(),
 			"guild_id": e.GuildID.String(),
 		},
-		RequestTimeout: 5,
+		RequestTimeout: 5 * time.Second,
 	})
 
 	if err != nil {
@@ -89,10 +92,10 @@ func (a *ArenaClient) GetGladiator(e *gateway.InteractionCreateEvent) (Gladiator
 	return g, nil
 }
 
-func (a *ArenaClient) FightGladiator(e *gateway.InteractionCreateEvent) (Gladiator, error) {
+func (a *ArenaClient) FightGladiator(e *gateway.InteractionCreateEvent) (gladiator.Gladiator, error) {
 
 	var (
-		g Gladiator
+		g gladiator.Gladiator
 	)
 
 	zap.L().Info("Fight gladiator",
@@ -105,7 +108,7 @@ func (a *ArenaClient) FightGladiator(e *gateway.InteractionCreateEvent) (Gladiat
 			"user_id":  e.Member.User.ID.String(),
 			"guild_id": e.GuildID.String(),
 		},
-		RequestTimeout: 5,
+		RequestTimeout: 5 * time.Second,
 	})
 
 	if err != nil {
@@ -136,7 +139,7 @@ func (a *ArenaClient) FireGladiator(e *gateway.InteractionCreateEvent) error {
 			"user_id":  e.Member.User.ID.String(),
 			"guild_id": e.GuildID.String(),
 		},
-		RequestTimeout: 5,
+		RequestTimeout: 5 * time.Second,
 	})
 
 	if err != nil {

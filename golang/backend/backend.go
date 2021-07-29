@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/wihrt/idle_arena/arena/arena"
+	"github.com/wihrt/idle_arena/arena"
+	"github.com/wihrt/idle_arena/logging"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/gorilla/mux"
 )
@@ -15,23 +15,7 @@ const APIBase = "/api/v1"
 
 func init() {
 
-	cfg := zap.Config{
-		Level:             zap.NewAtomicLevelAt(zapcore.DebugLevel),
-		DisableStacktrace: false,
-		Encoding:          "json",
-		EncoderConfig: zapcore.EncoderConfig{
-			MessageKey:   "message",
-			LevelKey:     "level",
-			EncodeLevel:  zapcore.CapitalLevelEncoder,
-			TimeKey:      "time",
-			EncodeTime:   zapcore.ISO8601TimeEncoder,
-			CallerKey:    "caller",
-			EncodeCaller: zapcore.ShortCallerEncoder,
-		},
-		OutputPaths:      []string{"stdout"},
-		ErrorOutputPaths: []string{"stderr"},
-	}
-
+	cfg := logging.GetConfig()
 	logger, _ := cfg.Build()
 	zap.ReplaceGlobals(logger)
 }
@@ -41,7 +25,7 @@ func main() {
 	var mongoDBURI = os.Getenv("MONGO_URL")
 
 	zap.L().Debug("Starting backend")
-	a := arena.NewArena(mongoDBURI)
+	a := arena.NewArenaServer(mongoDBURI)
 	zap.L().Debug("Connected to MongoDB")
 
 	router := mux.NewRouter()

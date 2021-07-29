@@ -1,8 +1,8 @@
 db = db.getSiblingDB('admin')
 db.createUser(
     {
-        user: "arenaManager",
-        pwd: "u2MQrvfHbTLxqjYf",
+        user: _getEnv("MONGODB_USER"),
+        pwd: _getEnv("MONGODB_PASSWORD"),
         roles: [ { role: "readWrite", db: "arena" } ]
     }
 )

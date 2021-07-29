@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 
-	"github.com/wihrt/idle_arena/arena/dice"
+	"github.com/wihrt/idle_arena/dice"
 	"go.uber.org/zap"
 )
 

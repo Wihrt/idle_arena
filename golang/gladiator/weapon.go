@@ -1,6 +1,6 @@
 package gladiator
 
-import "github.com/wihrt/idle_arena/arena/dice"
+import "github.com/wihrt/idle_arena/dice"
 
 type WeaponType string
 
