@@ -178,13 +178,13 @@ func gladiatorToEmbed(g gladiator.Gladiator) discord.Embed {
 	embed := discord.Embed{
 		Title: g.Name,
 		Fields: []discord.EmbedField{
-			{Name: g.Strength.Name, Value: strconv.Itoa(g.Strength.Value)},
-			{Name: g.Dexterity.Name, Value: strconv.Itoa(g.Dexterity.Value)},
-			{Name: g.Constitution.Name, Value: strconv.Itoa(g.Constitution.Value)},
-			{Name: "Weapon", Value: g.Weapon.Name},
-			{Name: "Armor", Value: g.Armor.Name},
-			{Name: "Armor Class", Value: strconv.Itoa(g.ArmorClass)},
-			{Name: "Experience", Value: strconv.Itoa(g.Experience) + "/" + strconv.Itoa(g.ExperienceToNextLevel)},
+			{Name: g.Strength.Name, Value: strconv.Itoa(g.Strength.Value), Inline: true},
+			{Name: g.Dexterity.Name, Value: strconv.Itoa(g.Dexterity.Value), Inline: true},
+			{Name: g.Constitution.Name, Value: strconv.Itoa(g.Constitution.Value), Inline: true},
+			{Name: "Weapon", Value: g.Weapon.Name, Inline: true},
+			{Name: "Armor", Value: g.Armor.Name, Inline: true},
+			{Name: "Armor Class", Value: strconv.Itoa(g.ArmorClass), Inline: true},
+			{Name: "Experience", Value: strconv.Itoa(g.Experience) + "/" + strconv.Itoa(g.ExperienceToNextLevel), Inline: false},
 		},
 	}
 
