@@ -28,7 +28,7 @@ jobs:
         IMAGE: idle_arena
         SHA_TAG: ${{ github.sha }}
         TAG: ${{ github.ref }}
-      run: |
-      docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go --t $REGISTRY/$IMAGE:$SHA_TAG ./golang
-      docker tag $REGISTRY/$IMAGE:$SHA_TAG $REGISTRY/$IMAGE:$TAG
-      docker push $REGISTRY/$IMAGE:$SHA_TAG$REGISTRY/$IMAGE:$TAG
+      run: |-
+        docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go --t $REGISTRY/$IMAGE:$SHA_TAG ./golang
+        docker tag $REGISTRY/$IMAGE:$SHA_TAG $REGISTRY/$IMAGE:$TAG
+        docker push $REGISTRY/$IMAGE:$SHA_TAG$REGISTRY/$IMAGE:$TAG
