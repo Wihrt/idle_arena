@@ -11,24 +11,21 @@ env:
 
 jobs:
 
-  build:
+  build:bot:
 
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-
     - name: Docker login
-      env:
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      run: docker login -u ${{ env.DOCKER_USER }} -p $DOCKER_PASSWORD
-
+      run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
     - name: Build the Docker image
       env:
         IMAGE: idle_arena/bot
+        CONTEXT: .golang
+        GOBINARY: arenaBot
+        GOFILE: ./bot/bot.go
       run: |-
-        cd golang
-        echo docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}.
-        docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}.
+        echo docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
+        docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
         docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
