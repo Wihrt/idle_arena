@@ -32,7 +32,7 @@ var RegisteredCommands = []api.CreateCommandData{
 	},
 	{
 		Name:        "show",
-		Description: "Show your gladiator",
+		Description: "Show your gladiator(s)",
 		Options: []discord.CommandOption{
 			{
 				Type:        3,

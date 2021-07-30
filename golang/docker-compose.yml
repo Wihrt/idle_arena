@@ -12,7 +12,7 @@ services:
             APP_ID: $APP_ID
             GUILD_ID: $GUILD_ID
             BOT_TOKEN: $BOT_TOKEN
-            ARENA_URL: http://backend:5000
+            ARENA_URL: http://backend:$BACKEND_PORT
         entrypoint: ["/usr/bin/arenaBot"]
         networks:
             - arenaFront
@@ -26,9 +26,10 @@ services:
         container_name: backend
         environment:
             MONGO_URL: mongodb://$MONGODB_USER:$MONGODB_PASSWORD@mongo:27017/$MONGODB_DATABASE?authSource=admin
+            HTTP_PORT: $BACKEND_PORT
         entrypoint: ["/usr/bin/arenaBackend"]
         ports:
-            - 5000:5000
+            - "$BACKEND_PORT:$BACKEND_PORT"
         networks:
             - arenaFront
             - arenaBack
