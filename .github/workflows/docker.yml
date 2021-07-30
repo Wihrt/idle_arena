@@ -50,8 +50,10 @@ jobs:
         with:
           context: ./golang
           build-args:
-            - GOBINARY=arenaBot
-            - GOFILE=./bot/bot.go
+            - name: GOBINARY
+              value: arenaBot
+            - name: GOFILE
+              value: ./bot/bot.go
           push:  ${{ github.event_name != 'pull_request' }}
 
   docker:backend:
@@ -83,6 +85,8 @@ jobs:
         with:
           context: ./golang
           build-args:
-            - GOBINARY=arenaBackend
-            - GOFILE=./bot/bot.go
+            - name: GOBINARY
+              value: arenaBackend
+            - name: GOFILE
+              value: ./backend/backend.go
           push:  ${{ github.event_name != 'pull_request' }}
