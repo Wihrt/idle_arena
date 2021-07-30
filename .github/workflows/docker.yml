@@ -22,7 +22,7 @@ jobs:
     - name: Build the Docker image
       env:
         IMAGE: idle_arena/bot
-        CONTEXT: .golang
+        CONTEXT: ./golang
         GOBINARY: arenaBot
         GOFILE: ./bot/bot.go
       run: |-
