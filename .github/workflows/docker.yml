@@ -12,7 +12,6 @@ env:
 jobs:
 
   build-bot:
-
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -21,10 +20,28 @@ jobs:
       run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
     - name: Build the Docker image
       env:
-        IMAGE: idle_arena/bot
+        IMAGE: arena_bot
         CONTEXT: ./golang
         GOBINARY: arenaBot
         GOFILE: ./bot/bot.go
+      run: |-
+        echo docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
+        docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
+        docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Docker login
+      run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build the Docker image
+      env:
+        IMAGE: arena_backend
+        CONTEXT: ./golang
+        GOBINARY: arenaBackend
+        GOFILE: ./backend/backend.go
       run: |-
         echo docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
         docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
