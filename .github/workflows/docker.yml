@@ -30,6 +30,7 @@ jobs:
         TAG: ${{ github.ref }}
       run: |-
         cd golang
+        echo docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go -t $REGISTRY/$IMAGE:$SHA_TAG .
         docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go -t $REGISTRY/$IMAGE:$SHA_TAG .
         docker tag $REGISTRY/$IMAGE:$SHA_TAG $REGISTRY/$IMAGE:$TAG
         docker push $REGISTRY/$IMAGE:$SHA_TAG$REGISTRY/$IMAGE:$TAG
