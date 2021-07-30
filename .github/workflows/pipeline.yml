@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Build Docker images
 
 on:
   push:
@@ -11,7 +11,8 @@ env:
 
 jobs:
 
-  build-bot:
+  docker-bot:
+    name: "Build and Push Docker bot image"
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -29,7 +30,8 @@ jobs:
         docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
         docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
 
-  build-backend:
+  docker-backend:
+    name: "Build and Push Docker backend image"
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
