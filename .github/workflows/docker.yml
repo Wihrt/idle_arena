@@ -24,7 +24,7 @@ jobs:
 
     - name: Build the Docker image
       env:
-        REGISTRY: ${{ secrets.DOCKER_USER }}
+        REGISTRY: megalooo
         IMAGE: idle_arena
         SHA_TAG: ${{ github.sha }}
         TAG: ${{ github.ref }}
