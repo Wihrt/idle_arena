@@ -1,92 +1,34 @@
-name: Docker
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+name: Docker Image CI
 
 on:
   push:
     branches: [ main, develop ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
   pull_request:
-    branches: [ main ]
-
-env:
-  # Use docker.io for Docker Hub if empty
-  REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
-
+    branches: [ main, develop ]
 
 jobs:
-  docker:bot:
+
+  build:
 
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Docker login
+      env:
+        DOCKER_USER: ${{ secrets.DOCKER_USER }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker Arena Bot
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-        with:
-          context: ./golang
-          build-args:
-            - name: GOBINARY
-              value: arenaBot
-            - name: GOFILE
-              value: ./bot/bot.go
-          push:  ${{ github.event_name != 'pull_request' }}
-
-  docker:backend:
-
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-        with:
-          context: ./golang
-          build-args:
-            - name: GOBINARY
-              value: arenaBackend
-            - name: GOFILE
-              value: ./backend/backend.go
-          push:  ${{ github.event_name != 'pull_request' }}
+    - name: Build the Docker image
+      env:
+        REPOSITORY: ${{ secrets.DOCKER_USER }}
+        IMAGE: idle_arena
+        SHA_TAG: ${{ github.sha }}
+        TAG: ${{ github.ref }}
+      run: |
+      docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go --t $REGISTRY/$IMAGE:$SHA_TAG ./golang
+      docker tag $REGISTRY/$IMAGE:$SHA_TAG $REGISTRY/$IMAGE:$TAG
+      docker push $REGISTRY/$IMAGE:$SHA_TAG$REGISTRY/$IMAGE:$TAG
