@@ -11,7 +11,7 @@ env:
 
 jobs:
 
-  build:bot:
+  build-bot:
 
     runs-on: ubuntu-latest
     steps:
