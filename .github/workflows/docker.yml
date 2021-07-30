@@ -24,7 +24,7 @@ jobs:
 
     - name: Build the Docker image
       env:
-        REPOSITORY: ${{ secrets.DOCKER_USER }}
+        REGISTRY: ${{ secrets.DOCKER_USER }}
         IMAGE: idle_arena
         SHA_TAG: ${{ github.sha }}
         TAG: ${{ github.ref }}
