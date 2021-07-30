@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+env:
+  DOCKER_USER: megalooo
+
 jobs:
 
   build:
@@ -18,19 +21,14 @@ jobs:
 
     - name: Docker login
       env:
-        DOCKER_USER: ${{ secrets.DOCKER_USER }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      run: docker login -u ${{ env.DOCKER_USER }} -p $DOCKER_PASSWORD
 
     - name: Build the Docker image
       env:
-        REGISTRY: megalooo
-        IMAGE: idle_arena
-        SHA_TAG: ${{ github.sha }}
-        TAG: ${{ github.ref }}
+        IMAGE: idle_arena/bot
       run: |-
         cd golang
-        echo docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go -t $REGISTRY/$IMAGE:$SHA_TAG .
-        docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go -t $REGISTRY/$IMAGE:$SHA_TAG .
-        docker tag $REGISTRY/$IMAGE:$SHA_TAG $REGISTRY/$IMAGE:$TAG
-        docker push $REGISTRY/$IMAGE:$SHA_TAG$REGISTRY/$IMAGE:$TAG
+        echo docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}.
+        docker build --build-arg GOBINARY=arenaBot --build-arg GOFILE=./bot/bot.go -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}.
+        docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
