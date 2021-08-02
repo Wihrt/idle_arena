@@ -63,4 +63,6 @@ jobs:
     - name: Add key to playbook repository
       run: echo {{ secrets.SSH_KEY }} > ansible/vps_key_private
     - name: Run ansible playbook
-      run: ansible-playbook -e "token={{ secrets.BOT_TOKEN }}" -e "target={{ secrets.TARGET_HOST }}" -e "target_user={{ secrets.TARGET_USER }}" -e "bot_version={{ github.sha }}" playbook.yml
+      run: |- 
+        cd ansible
+        ansible-playbook -e "token={{ secrets.BOT_TOKEN }}" -e "target={{ secrets.TARGET_HOST }}" -e "target_user={{ secrets.TARGET_USER }}" -e "bot_version={{ github.sha }}" playbook.yml
