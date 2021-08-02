@@ -64,7 +64,7 @@ jobs:
       run: |-
         echo $SSH_KEY > ansible/vps_key_private
         chmod 0600 ansible/vps_key_private
-        echo ansible/vps_key_private
+        cat ansible/vps_key_private
       env:
         SSH_KEY: ${{ secrets.SSH_KEY }}
     - name: Run ansible playbook
