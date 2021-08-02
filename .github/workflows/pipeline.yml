@@ -65,4 +65,9 @@ jobs:
     - name: Run ansible playbook
       run: |- 
         cd ansible
-        ansible-playbook -e "token={{ secrets.BOT_TOKEN }}" -e "target={{ secrets.TARGET_HOST }}" -e "target_user={{ secrets.TARGET_USER }}" -e "bot_version={{ github.sha }}" playbook.yml
+        ansible-playbook -e "token=$TARGET" -e "target=$TARGET_HOST" -e "target_user=$TARGET_USER" -e "bot_version=$BOT_TOKEN" playbook.yml
+      env:
+        TARGET_HOST: "{{ secrets.TARGET_HOST }}"
+        TARGET_USER: "{{ secrets.TARGET_USER }}"
+        BOT_VERSION: "{{ github.sha }}"
+        BOT_TOKEN: "{{ secrets.BOT_TOKEN }}"
