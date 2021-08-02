@@ -5,22 +5,26 @@
 
 - block:
   - name: "Install Helm GPG key"
-    command: 'curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -'
+    shell: 'curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -'
   
   - name: Install package
     apt:
-      name: '{{ item }}'
+      name: '{{ package }}'
       state: present
     loop:
       - apt-transport-https
+    loop_control:
+      loop_var: package
 
   - name: Add repository
-    command: 'add-apt-repository "deb https://baltocdn.com/helm/stable/debian/ all main"'
+    shell: 'add-apt-repository "deb https://baltocdn.com/helm/stable/debian/ all main"'
   
   - name: Install Helm
     apt:
-      name: '{{ item }}'
+      name: '{{ package_helm }}'
       state: present
     loop:
       - helm
+    loop_control:
+      loop_var: package_helm
   when: helm_installed.rc != 0
