@@ -14,7 +14,7 @@
     register: pip_install_script
 
   - name: Run PIP install script
-    command: python {{ pip_install_script.dest }}
+    command: python3 {{ pip_install_script.dest }}
 
   - name: Remove PIP install script
     file:
