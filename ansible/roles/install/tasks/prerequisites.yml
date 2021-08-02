@@ -5,7 +5,7 @@
 
 - block:
   - name: Install python3-distutils
-    command: "apt-install python-distutils -y"
+    command: "apt-get install python-distutils -y"
   
   - name: Get PIP install script
     get_url:
