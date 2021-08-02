@@ -65,10 +65,11 @@ jobs:
         cd ansible
         echo ${{ secrets.VAULT_PASSWORD }} > vault_password
         ansible-vault decrypt --vault-password-file vault_password vps_key_private
+        chod 0600 vps_key_private
         cat vps_key_private
     - name: Run ansible playbook
       run: |- 
-        pwd
+        cd ansible
         ansible-playbook -e "token=$TARGET" -e "target=$TARGET_HOST" -e "target_user=$TARGET_USER" -e "bot_version=$BOT_TOKEN" playbook.yml
       env:
         TARGET_HOST: ${{ secrets.TARGET_HOST }}
