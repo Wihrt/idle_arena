@@ -62,8 +62,10 @@ jobs:
       run: pip install ansible
     - name: Add key to playbook repository
       run: |-
-        echo {{ secrets.SSH_KEY }} > ansible/vps_key_private
+        echo $SSH_KEY > ansible/vps_key_private
         chmod 0600 ansible/vps_key_private
+      env:
+        SSH_KEY: ${{ secrets.SSH_KEY }}
     - name: Run ansible playbook
       run: |- 
         cd ansible
