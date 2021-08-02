@@ -60,16 +60,15 @@ jobs:
       uses: actions/checkout@v2
     - name: Install Ansible
       run: pip install ansible
-    - name: Add key to playbook repository
+    - name: Decrypt vps_key_private
       run: |-
-        echo $SSH_KEY > ansible/vps_key_private
-        chmod 0600 ansible/vps_key_private
-        cat ansible/vps_key_private
-      env:
-        SSH_KEY: ${{ secrets.SSH_KEY }}
+        cd ansible
+        echo ${{ secrets.VAULT_PASSWORD }} > vault_password
+        ansible-vault decrypt --vault-password-file vault_password vps_key_private
+        cat vps_key_private
     - name: Run ansible playbook
       run: |- 
-        cd ansible
+        pwd
         ansible-playbook -e "token=$TARGET" -e "target=$TARGET_HOST" -e "target_user=$TARGET_USER" -e "bot_version=$BOT_TOKEN" playbook.yml
       env:
         TARGET_HOST: ${{ secrets.TARGET_HOST }}
