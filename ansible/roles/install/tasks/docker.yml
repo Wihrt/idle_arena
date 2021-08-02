@@ -6,7 +6,7 @@
 - block:
   - name: Install package
     apt:
-      name: '{{ item }}'
+      name: '{{ package }}'
       state: present
     loop:
       - apt-transport-https
@@ -14,6 +14,8 @@
       - curl
       - gnupg-agent
       - software-properties-common
+    loop_control:
+      loop_var: package
 
   - name: Install Docker GPG key
     shell: 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -'
@@ -23,9 +25,11 @@
 
   - name: Install Docker
     apt:
-      name: '{{ item }}'
+      name: '{{ package_docker }}'
     loop:
       - docker-ce
       - docker-ce-cli
       - containerd.io
+    loop_control:
+      loop_var: package_docker
   when: docker_installed.rc != 0
