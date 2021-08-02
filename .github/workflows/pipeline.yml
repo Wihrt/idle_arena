@@ -1,4 +1,4 @@
-name: Build Docker images
+name: Idle Arena CI/CD
 
 on:
   push:
@@ -48,3 +48,16 @@ jobs:
         echo docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
         docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
         docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+
+  ansible:
+    name: "Prepare environment and deploy"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install Ansible
+      run: pip install ansible
+    - name: Add key to playbook repository
+      run: echo {{ secrets.SSH_KEY }} > ansible/vps_key_private
+    - name: Run ansible playbook
+      run: ansible-playbook -e "token={{ secrets.BOT_TOKEN }}" -e "target={{ secrets.TARGET_HOST }}" -e "target_user={{ secrets.TARGET_USER }}" -e "bot_version={{ github.sha }}" playbook.yml

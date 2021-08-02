@@ -1,0 +1,26 @@
+- name: Check if Helm is installed
+  command: "which helm"
+  register: helm_installed
+  ignore_errors: true
+
+- block:
+  - name: "Install Helm GPG key"
+    command: 'curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -'
+  
+  - name: Install package
+    apt:
+      name: '{{ item }}'
+      state: present
+    loop:
+      - apt-transport-https
+
+  - name: Add repository
+    command: 'add-apt-repository "deb https://baltocdn.com/helm/stable/debian/ all main"'
+  
+  - name: Install Helm
+    apt:
+      name: '{{ item }}'
+      state: present
+    loop:
+      - helm
+  when: helm_installed.rc != 0

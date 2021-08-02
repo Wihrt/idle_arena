@@ -1,0 +1,19 @@
+- name: Check if k3s is installed
+  systemd:
+    name: k3s
+    state: started
+  
+- name: Download install script
+  get_url:
+    url: https://get.k3s.io
+    dest: $HOME/k3s_install.sh
+    mode: 0755
+  register: k3d_install
+
+- name: Install k3d
+  shell: '{{ k3d_install.dest }}'
+
+- name: Remove install script
+  file:
+    path: '{{ k3d_install.dest }}'
+    state: absent

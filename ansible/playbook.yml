@@ -1,0 +1,16 @@
+- name: Generate invetory
+  hosts: localhost
+  tasks:
+    - name: Add target host
+      add_host:
+        hostname: '{{ target }}'
+        ansible_ssh_user: '{{ target_user }}'
+        ansible_private_key_file: '{{ playbook_dir }}/vps_key_private'
+        ansible_python_interpreter: /usr/bin/python3
+
+- name: Install and deploy
+  hosts: all
+  gather_facts: true
+  roles:
+    - install
+    - deploy
