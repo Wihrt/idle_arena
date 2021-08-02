@@ -66,7 +66,6 @@ jobs:
         echo ${{ secrets.VAULT_PASSWORD }} > vault_password
         ansible-vault decrypt --vault-password-file vault_password vps_key_private
         chmod 0600 vps_key_private
-        cat vps_key_private
     - name: Run ansible playbook
       run: |- 
         cd ansible

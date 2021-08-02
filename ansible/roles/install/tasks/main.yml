@@ -4,6 +4,6 @@
     - prerequisites
     - docker
     - compose
-    - k3d
+    - k3s
     - kubectl
     - helm
