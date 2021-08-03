@@ -13,6 +13,7 @@ spec:
     metadata:
       {{- with .Values.podAnnotations }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -26,23 +27,42 @@ spec:
       initContainers:
         - name: "wait-for-service"
           image: busybox
-          command: ['sh', '-c', 'until nc -zv $ARENA_HOST $ARENA_PORT; do echo "Waiting for arena backend"; sleep 2 ; done' ]
+          command: ['sh', '-c', 'echo "Wait for $ARENA_HOST:$ARENA_PORT" ; until nc -zv $ARENA_HOST $ARENA_PORT; do echo "Waiting for arena backend"; sleep 2 ; done' ]
+          env:
+          - name: ARENA_HOST
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: arenaHost
+          - name: ARENA_PORT
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: arenaPort
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-          - name: BOT_TOKEN
-            value: {{ .Values.env.bot_token }}
           - name: APP_ID
-            value: {{ .Values.env.app_id }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: appID
           - name: GUILD_ID
-            value: {{ .Values.env.guild_id }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: guildID
           - name: ARENA_URL
-            value: "http://{{ .Values.env.arena_host }}:{{ .Values.env.arena_port }}"
-          ports:
-            - name: http
-              containerPort: 5000
-              protocol: TCP
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: arenaUrl
+          - name: BOT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: botToken
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

@@ -27,9 +27,9 @@ func main() {
 		APIBase    = "/" + arena.APIBase
 	)
 
-	zap.L().Debug("Starting backend")
+	zap.L().Info("Starting backend")
 	a := arena.NewArenaServer(mongoDBURI)
-	zap.L().Debug("Connected to MongoDB")
+	zap.L().Info("Connected to MongoDB")
 
 	router := mux.NewRouter()
 	router.HandleFunc(strings.Join([]string{APIBase, "managers", "{id}"}, "/"), a.GetManager).Methods("GET")

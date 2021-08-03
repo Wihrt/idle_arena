@@ -22,11 +22,12 @@ serviceAccount:
   name: ""
 
 env:
-  bot_token: ""
-  app_id: ""
-  guild_id: ""
-  arena_host: arena
-  arena_port: 5000
+  botToken: ""
+  appID: ""
+  guildID: ""
+  arenaHost: arena
+  arenaPort: 5000
+  arenaUrl: http://arena:5000
 
 podAnnotations: {}
 

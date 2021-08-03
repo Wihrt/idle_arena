@@ -5,9 +5,7 @@ metadata:
   labels:
     {{- include "backend.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "backend.selectorLabels" . | nindent 6 }}
@@ -15,6 +13,7 @@ spec:
     metadata:
       {{- with .Values.podAnnotations }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -26,27 +25,37 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
-              - name: "wait-for-service"
+        {{- toYaml .Values.podSecurityContext | nindent 8 }} 
+      initContainers:
+        - name: "wait-for-service"
           image: busybox
-          command: ['sh', '-c', 'until nc -zv $MONGO_HOST $MONGO_PORT; do echo "Waiting for arena backend"; sleep 2 ; done' ]
+          command: ['sh', '-c', 'echo "Wait for $MONGO_HOST:$MONGO_PORT" ; until nc -zv $MONGO_HOST $MONGO_PORT; do echo "Waiting for arena backend"; sleep 2 ; done' ]
+          env:
+            - name: MONGO_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "backend.fullname" . }}
+                  key: mongoHost
+            - name: MONGO_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "backend.fullname" . }}
+                  key: mongoPort
       containers:
         - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: HTTP_PORT
+              value: {{ .Values.env.httpPort | quote }}
+            - name: MONGO_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "backend.fullname" . }}
+                  key: mongoUri
           ports:
             - name: http
-              containerPort: 80
+              containerPort: {{ .Values.env.httpPort }}
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

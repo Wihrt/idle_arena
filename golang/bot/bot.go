@@ -85,6 +85,8 @@ func init() {
 
 func main() {
 
+	zap.L().Info("Starting bot")
+
 	appID := discord.AppID(mustSnowflakeEnv("APP_ID"))
 	guildID := discord.GuildID(mustSnowflakeEnv("GUILD_ID"))
 

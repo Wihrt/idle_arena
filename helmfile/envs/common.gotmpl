@@ -1,0 +1,19 @@
+mongo:
+    auth:
+        rootPassword: {{ randAlpha 20 | quote }}
+        username: arena
+        password: {{ randAlpha 20 | quote }}
+        database: arena
+
+backend:
+    env:
+        mongoHost: mongo-mongodb.arena.svc.cluster.local
+        mongoPort: 27017
+        httpPort: 5000
+
+bot:
+    env:
+        guildID: 323741490465603594
+        appID: 869502722901180436
+        arenaHost: backend.arena.svc.cluster.local
+        arenaPort: 5000

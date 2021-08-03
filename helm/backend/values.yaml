@@ -23,8 +23,8 @@ serviceAccount:
   name: ""
 
 env:
-  http_port: 5000
-  mongo_url: ""
+  httpPort: 5000
+  mongoUrl: ""
 
 podAnnotations: {}
 
