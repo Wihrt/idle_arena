@@ -1,0 +1,47 @@
+name: "Build Docker images"
+
+on: ["push", "pull_request"]
+
+env:
+  DOCKER_USER: megalooo
+
+jobs:
+
+  docker-bot:
+    name: "Build and Push Docker bot image"
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: arena_bot
+      CONTEXT: ./golang
+      GOBINARY: arenaBot
+      GOFILE: ./bot/bot.go
+    steps: &docker-steps
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Docker login
+      run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build the Docker image
+      run: |-
+        echo docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
+        docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
+        docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+    - name: Tag Docker image to latest
+      if: github.ref != 'refs/head/master'
+      run: |-
+        docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
+        docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
+    - name: Tag Docker image to master
+      if: githib.ref == 'refs/head/master'
+      run: |-
+        docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:master
+        docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:master
+      
+  docker-backend:
+    name: "Build and Push Docker backend image"
+    runs-on: ubuntu-latest
+    env:
+        IMAGE: arena_backend
+        CONTEXT: ./golang
+        GOBINARY: arenaBackend
+        GOFILE: ./backend/backend.go
+    steps: *docker-steps

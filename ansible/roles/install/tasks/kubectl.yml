@@ -2,6 +2,7 @@
   command: "which kubectl"
   register: kubectl_installed
   ignore_errors: true
+  tags: kubectl
 
 - block:
   - name: Get latest release version
@@ -9,10 +10,12 @@
       url: https://storage.googleapis.com/kubernetes-release/release/stable.txt
       return_content: true
     register: latest_kubectl_release
+    tags: kubectl
 
   - name: Get kubectl
     get_url:
       url: https://storage.googleapis.com/kubernetes-release/release/{{ latest_kubectl_release.content | trim }}/bin/linux/amd64/kubectl
       dest: /usr/bin/kubectl
       mode: 0755
+    tags: kubectl
   when: kubectl_installed.rc != 0

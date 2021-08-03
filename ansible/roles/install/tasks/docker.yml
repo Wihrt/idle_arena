@@ -2,6 +2,7 @@
   command: which docker
   register: docker_installed
   ignore_errors: true
+  tags: docker
 
 - block:
   - name: Install package
@@ -16,12 +17,15 @@
       - software-properties-common
     loop_control:
       loop_var: package
+    tags: docker
 
   - name: Install Docker GPG key
     shell: 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -'
+    tags: docker
 
   - name: Add Docker repository
     shell: 'add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"'
+    tags: docker
 
   - name: Install Docker
     apt:
@@ -32,4 +36,5 @@
       - containerd.io
     loop_control:
       loop_var: package_docker
+    tags: docker
   when: docker_installed.rc != 0

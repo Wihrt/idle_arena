@@ -1,0 +1,14 @@
+- name: Check if Helmfile is installed
+  command: "which helmfile"
+  register: helmfile_installed
+  ignore_errors: true
+  tags: helmfile
+
+- block:
+  - name: Download Helmfile
+    get_url:
+      url: https://github.com/roboll/helmfile/releases/download/v0.140.0/helmfile_linux_amd64
+      dest: /usr/bin/helmfile
+      mode: 0755
+  tags: helmfile
+  when: helmfile_installed.rc != 0

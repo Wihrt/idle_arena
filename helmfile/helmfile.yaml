@@ -1,0 +1,42 @@
+repositories:
+- name: stable
+  url: https://charts.helm.sh/stable
+- name: binami
+  url: https://charts.bitnami.com/bitnami
+
+environments:
+  develop:
+    values:
+    - common.yaml
+    - develop.yaml
+  production:
+    values:
+    - common.yaml
+    - production.yaml
+
+templates:
+  default: &default
+  chart: ../helm/{{`{{ .Release.Name }}`}}
+  namespace: arena
+  createNamespace: true
+  values:
+    - config/{{`{{ .Release.Name }}`}}/values.yaml
+    - config/{{`{{ .Release.Name }}`}}/values.gotmpl
+    - config/{{`{{ .Release.Name }}`}}/{{`{{.Environment.Name }}`}}.values.yaml
+  secrets:
+    - config/{{`{{ .Release.Name }}`}}/{{`{{.Environment.Name }}`}}.secrets.yaml
+
+releases:
+- name: bot
+  <<: *default
+  needs:
+    - backend
+- name: backend
+  <<: *default
+  needs:
+    - mongo
+- name: mongo
+  <<: *default
+  chart: bitnami/mongo
+
+
