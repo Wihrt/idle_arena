@@ -26,33 +26,16 @@ spec:
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }} 
-      initContainers:
-        - name: "wait-for-service"
-          image: busybox
-          command: ['sh', '-c', 'echo "Wait for $MONGO_HOST:$MONGO_PORT" ; until nc -zv $MONGO_HOST $MONGO_PORT; do echo "Waiting for arena backend"; sleep 2 ; done' ]
-          env:
-            - name: MONGO_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "backend.fullname" . }}
-                  key: mongoHost
-            - name: MONGO_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "backend.fullname" . }}
-                  key: mongoPort
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/usr/bin/arenaBackend"]
           env:
             - name: HTTP_PORT
               value: {{ .Values.env.httpPort | quote }}
             - name: MONGO_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "backend.fullname" . }}
-                  key: mongoUri
+              value: {{ .Values.env.mongoUri }}
           ports:
             - name: http
               containerPort: {{ .Values.env.httpPort }}

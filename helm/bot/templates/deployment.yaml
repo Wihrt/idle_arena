@@ -24,45 +24,19 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "bot.serviceAccountName" . }}
-      initContainers:
-        - name: "wait-for-service"
-          image: busybox
-          command: ['sh', '-c', 'echo "Wait for $ARENA_HOST:$ARENA_PORT" ; until nc -zv $ARENA_HOST $ARENA_PORT; do echo "Waiting for arena backend"; sleep 2 ; done' ]
-          env:
-          - name: ARENA_HOST
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "bot.fullname" . }}
-                key: arenaHost
-          - name: ARENA_PORT
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "bot.fullname" . }}
-                key: arenaPort
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/usr/bin/arenaBot"]
           env:
           - name: APP_ID
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "bot.fullname" . }}
-                key: appID
+            value: {{  .Values.env.appID | replace ":" "" | quote }}
           - name: GUILD_ID
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "bot.fullname" . }}
-                key: guildID
+            value: {{ .Values.env.guildID | replace ":" "" | quote }}
           - name: ARENA_URL
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "bot.fullname" . }}
-                key: arenaUrl
+            value: {{ .Values.env.arenaUrl | quote}}
           - name: BOT_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "bot.fullname" . }}
-                key: botToken
+            value: {{ .Values.env.botToken | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

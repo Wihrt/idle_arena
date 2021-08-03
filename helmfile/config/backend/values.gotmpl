@@ -2,4 +2,4 @@ env:
   httpPort: {{ .Values.backend.env.httpPort }}
   mongoHost: {{ .Values.backend.env.mongoHost }}
   mongoPort: {{ .Values.backend.env.mongoPort }}
-  mongoUri: mongodb://{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{ .Values.backend.env.mongoHost }}:{{ .Values.backend.env.mongoPort }}/{{ .Values.mongo.auth.database }}?authSource=admin
+  mongoUri: mongodb://{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{ .Values.backend.env.mongoHost }}:{{ .Values.backend.env.mongoPort }}/{{ .Values.mongo.auth.database }}

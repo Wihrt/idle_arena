@@ -39,5 +39,6 @@ releases:
 - name: mongo
   <<: *default
   chart: bitnami/mongodb
+  wait: true
 
 
