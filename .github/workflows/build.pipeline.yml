@@ -31,7 +31,7 @@ jobs:
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
       - name: Tag Docker image to master
-        if: githib.ref == 'refs/head/master'
+        if: github.ref == 'refs/head/master'
         run: |-
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:master
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:master
@@ -60,7 +60,7 @@ jobs:
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
       - name: Tag Docker image to master
-        if: githib.ref == 'refs/head/master'
+        if: github.ref == 'refs/head/master'
         run: |-
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:master
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:master
