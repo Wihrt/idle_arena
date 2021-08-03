@@ -14,6 +14,7 @@ jobs:
     needs:
       - docker-bot
       - docker-backend
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
