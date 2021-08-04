@@ -20,7 +20,7 @@ jobs:
     name: "Prepare environment"
     runs-on: ubuntu-latest
     container:
-      image: env.DOCKER_USER/ansible:env.ANSIBLE_VERSION
+      image: ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2

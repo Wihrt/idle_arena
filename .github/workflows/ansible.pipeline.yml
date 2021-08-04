@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - docker-pull
-    if: ${{ needs.docker-pull.result == 'failure' }}
+    if: ${{ always() && needs.docker-pull.result == 'failure' }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
