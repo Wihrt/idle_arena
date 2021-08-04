@@ -6,14 +6,17 @@ repositories:
 
 templates:
   environment: &environment
+    missingFileHandler: Warn
     values:
-    - envs/common.gotmpl
-    - envs/{{.Environment.Name }}.gotmpl
+    - envs/values.gotmpl
+    - envs/{{ .Environment.Name }}/values.gotmpl
     - mongo:
         host: mongo-mongodb.arena-{{.Environment.Name }}
     - bot:
         backend:
-          host: backend.arena-{{.Environment.Name }}
+          host: backend.arena-{{ .Environment.Name }}
+    secrets:
+    - envs/{{ .Environment.Name }}/secrets.yaml
 
   release: &release
     chart: ../helm/{{`{{ .Release.Name }}`}}
