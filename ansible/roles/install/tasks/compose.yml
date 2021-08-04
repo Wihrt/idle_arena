@@ -1,0 +1,11 @@
+- name: Check if Docker-Compose is installed
+  command: which docker-compose
+  register: docker_compose_installed
+  ignore_errors: true
+  tags: compose
+
+- name: Install Docker-Compose
+  pip:
+    name: docker-compose
+  tags: compose
+  when: docker_compose_installed.rc != 0

@@ -1,0 +1,33 @@
+- name: Find pip
+  command: "which pip"
+  register: pip_installed
+  ignore_errors: true
+  tags: always 
+
+- block:
+  - name: Install python3-distutils
+    command: "apt-get install python3-distutils -y"
+    tags: always 
+  
+  - name: Get PIP install script
+    get_url:
+      url: https://bootstrap.pypa.io/get-pip.py
+      dest: $HOME/get-pip.py
+    register: pip_install_script
+    tags: always 
+
+  - name: Run PIP install script
+    command: python3 {{ pip_install_script.dest }}
+    tags: always 
+
+  - name: Remove PIP install script
+    file:
+      path: '{{ pip_install_script.dest }}'
+      state: absent
+    tags: always 
+
+  - name: Install python-apt
+    pip: 
+      name: python-apt
+    tags: always 
+  when: pip_installed.rc != 0

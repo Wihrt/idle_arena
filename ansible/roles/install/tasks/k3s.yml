@@ -1,0 +1,25 @@
+- name: Check if k3s service is present
+  stat:
+    path: /etc/systemd/system/k3s.service
+  register: k3s_service_file
+  tags: k3s
+  
+- block:
+  - name: Download install script
+    get_url:
+      url: https://get.k3s.io
+      dest: $HOME/k3s_install.sh
+      mode: 0755
+    register: k3s_install
+    tags: k3s
+
+  - name: Install k3d
+    shell: '{{ k3s_install.dest }}'
+    tags: k3s
+
+  - name: Remove install script
+    file:
+      path: '{{ k3s_install.dest }}'
+      state: absent
+    tags: k3s
+  when: not k3s_service_file.stat.exists

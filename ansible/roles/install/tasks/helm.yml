@@ -1,0 +1,39 @@
+- name: Check if Helm is installed
+  command: "which helm"
+  register: helm_installed
+  ignore_errors: true
+  tags: helm
+
+- block:
+  - name: "Install Helm GPG key"
+    shell: 'curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -'
+    tags: helm
+  
+  - name: Install package
+    apt:
+      name: '{{ package }}'
+      state: present
+    loop:
+      - apt-transport-https
+    loop_control:
+      loop_var: package
+    tags: helm
+
+  - name: Add repository
+    shell: 'add-apt-repository "deb https://baltocdn.com/helm/stable/debian/ all main"'
+    tags: helm
+  
+  - name: Install Helm
+    apt:
+      name: '{{ package_helm }}'
+      state: present
+    loop:
+      - helm
+    loop_control:
+      loop_var: package_helm
+    tags: helm
+  
+  - name: Set alias for Helm
+    command: "alias helm='helm --kubeconfig /etc/rancher/k3s/k3s.yaml'"
+    tags: helm
+  when: helm_installed.rc != 0

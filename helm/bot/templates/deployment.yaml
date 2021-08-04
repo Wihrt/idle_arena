@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bot.fullname" . }}
+  labels:
+    {{- include "bot.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "bot.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "bot.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "bot.serviceAccountName" . }}
+      initContainers:
+        - name: "wait-for-service"
+          image: busybox
+          command: ['sh', '-c', 'echo "Wait for $ARENA_HOST:$ARENA_PORT" ; until nc -zvw 1 $ARENA_HOST $ARENA_PORT; do echo "Waiting for arena backend"; sleep 2 ; done' ]
+          env:
+          - name: ARENA_HOST
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: arenaHost
+          - name: ARENA_PORT
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: arenaPort
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/usr/bin/arenaBot"]
+          env:
+          - name: APP_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: appID
+          - name: GUILD_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: guildID
+          - name: ARENA_URL
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: arenaUrl
+          - name: BOT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "bot.fullname" . }}
+                key: botToken
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

@@ -1,0 +1,48 @@
+- name: Check if Helm secrets is installed
+  shell: 'helm plugin list | grep secrets'
+  register: helm_secrets_installed
+  tags: helm-plugins
+  ignore_errors: true
+
+- name: Install Helm Secrets plugin
+  command: 'helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.2'
+  tags: helm-plugins
+  when: helm_secrets_installed.rc != 0
+
+- name: Check if SOPS is installed
+  command: "which sops"
+  register: sops_installed
+  ignore_errors: true
+  tags: helm-plugins
+
+- block:
+  - name: Download SOPS package
+    get_url:
+      url: https://github.com/mozilla/sops/releases/download/v3.7.1/sops_3.7.1_amd64.deb
+      dest: $HOME/sops.deb
+      mode: 0755
+    register: sops_deb_package
+    tags: helm-plugins
+  
+  - name: Install SOPS package
+    apt:
+      deb: "{{ sops_deb_package.dest }}"
+    tags: helm-plugins
+  when: sops_installed.rc != 0
+
+- name: Check if GPG is installed
+  command: "which gpg"
+  register: gpg_installed
+  ignore_errors: true
+  tags: helm-plugins
+
+- block:
+  - name: Install GPG
+    apt:
+      name: '{{ package }}'
+      state: present
+    loop:
+      - gpg
+    loop_control:
+      loop_var: package
+  when: gpg_installed.rc != 0

@@ -1,0 +1,13 @@
+- name: Launch installations steps
+  include_tasks: "{{ item }}.yml"
+  loop:
+    - prerequisites
+    - docker
+    - compose
+    - k3s
+    - kubectl
+    - helm
+    - helm-plugins
+    - helmfile
+    - kubeconfig
+  tags: always

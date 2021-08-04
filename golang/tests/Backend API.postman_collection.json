@@ -1,0 +1,456 @@
+{
+	"info": {
+		"_postman_id": "4694598a-4897-4b38-8f93-aaaa47f6f277",
+		"name": "Backend API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "New Manager",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([201, 202]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"manager_id\": \"{{MANAGER_ID}}\"\n}"
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}/{{ROOT_API}}managers",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"{{ROOT_API}}managers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Manager",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var data = JSON.parse(responseBody);",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Manager is OK\", function () {",
+							"    pm.expect(pm.environment.get(\"MANAGER_ID\") === data.manager_id)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}/{{ROOT_API}}managers/{{MANAGER_ID}}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"{{ROOT_API}}managers",
+						"{{MANAGER_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "New Gladiator",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var data = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"GLADIATOR_ID\", data.gladiator_id);",
+							"",
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([201, 202]);",
+							"});",
+							"pm.test(\"Manager is OK\", function () {",
+							"    pm.expect(pm.environment.get(\"MANAGER_ID\") === data.manager_id)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}/{{ROOT_API}}managers/{{MANAGER_ID}}/gladiators",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"{{ROOT_API}}managers",
+						"{{MANAGER_ID}}",
+						"gladiators"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Gladiator",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var data = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"GLADIATOR_EXPERIENCE\", data.experience);",
+							"postman.setEnvironmentVariable(\"GLADIATOR_LEVEL\", data.level);",
+							"postman.setEnvironmentVariable(\"GLADIATOR_EXP_NEXT_LEVEL\", data.experience);",
+							"postman.setEnvironmentVariable(\"GLADIATOR_STRENGTH\", data.strength.value);",
+							"postman.setEnvironmentVariable(\"GLADIATOR_DEXTERITY\", data.dexterity.value);",
+							"postman.setEnvironmentVariable(\"GLADIATOR_CONSTITUTION\", data.constitution.value);",
+							"",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Manager is OK\", function () {",
+							"    pm.expect(pm.environment.get(\"MANAGER_ID\") === data.manager_id)",
+							"});",
+							"pm.test(\"Gladiator is OK\", function() {",
+							"    pm.expect(pm.environment.get(\"GLADIATOR_ID\") === data.gladiator_id)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}/{{ROOT_API}}managers/{{MANAGER_ID}}/gladiators/{{GLADIATOR_ID}}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"{{ROOT_API}}managers",
+						"{{MANAGER_ID}}",
+						"gladiators",
+						"{{GLADIATOR_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Manager with Gladiators",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var data = JSON.parse(responseBody);",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Manager is OK\", function () {",
+							"    pm.expect(pm.environment.get(\"MANAGER_ID\") === data.manager_id)",
+							"});",
+							"pm.test(\"Gladiator is OK\", function() {",
+							"    pm.expect(pm.environment.get(\"GLADIATOR_ID\") === data.gladiators[0])",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}/{{ROOT_API}}managers/{{MANAGER_ID}}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"{{ROOT_API}}managers",
+						"{{MANAGER_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fight Gladiator",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var data = JSON.parse(responseBody);",
+							"",
+							"",
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 202]);",
+							"});",
+							"pm.test(\"Manager is OK\", function () {",
+							"    pm.expect(pm.environment.get(\"MANAGER_ID\") === data.manager_id)",
+							"});",
+							"pm.test(\"Gladiator is OK\", function() {",
+							"    pm.expect(pm.environment.get(\"GLADIATOR_ID\") === data.gladiator.gladiator_id)",
+							"});",
+							"pm.test(\"Fight result is bool\", function () {",
+							"    pm.expect(typeof(data.fight_won) == \"boolean\")",
+							"});",
+							"",
+							"(data.fight_won  ? pm.test : pm.test.skip)(\"Gain experience when fight won\", () => {",
+							"    pm.expect(data.gladiator.experience > pm.environment.get(\"GLADIATOR_EXPERIENCE\"))",
+							"});",
+							"",
+							"((data.gladiator.level >  pm.environment.get(\"GLADIATOR_LEVEL\") ? pm.test : pm.test.skip)(\"Level up is OK\", () => {",
+							"    pm.expect(data.gladiator.experience_to_next_level > pm.environment.get(\"GLADIATOR_EXP_NEXT_LEVEL\"))",
+							"    pm.expect(data.gladiator.strength > pm.environment.get(\"GLADIATOR_STRENGTH\") || data.gladiator.dexterity > pm.environment.get(\"GLADIATOR_DEXTERITY\") || data.gladiator.constitution > pm.environment.get(\"GLADIATOR_CONSTITUTION\"))",
+							"}));",
+							"",
+							"// Relaunch request until level up",
+							"if (data.gladiator.level == pm.environment.get(\"GLADIATOR_LEVEL\")) {",
+							"    postman.setNextRequest(\"Fight Gladiator\")",
+							"} else {",
+							"    postman.setNextRequest(\"Delete Gladiator\")",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}/{{ROOT_API}}managers/{{MANAGER_ID}}/gladiators/{{GLADIATOR_ID}}/fight",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"{{ROOT_API}}managers",
+						"{{MANAGER_ID}}",
+						"gladiators",
+						"{{GLADIATOR_ID}}",
+						"fight"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Gladiator",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful DELETE request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}/{{ROOT_API}}managers/{{MANAGER_ID}}/gladiators/{{GLADIATOR_ID}}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"{{ROOT_API}}managers",
+						"{{MANAGER_ID}}",
+						"gladiators",
+						"{{GLADIATOR_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get non existent Gladiator",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}/{{ROOT_API}}managers/{{MANAGER_ID}}/gladiators/{{GLADIATOR_ID}}?",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"{{ROOT_API}}managers",
+						"{{MANAGER_ID}}",
+						"gladiators",
+						"{{GLADIATOR_ID}}"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete manager",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful DELETE request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}/{{ROOT_API}}managers/{{MANAGER_ID}}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"{{ROOT_API}}managers",
+						"{{MANAGER_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get non existant Manager",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}/{{ROOT_API}}managers/{{MANAGER_ID}}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"{{ROOT_API}}managers",
+						"{{MANAGER_ID}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

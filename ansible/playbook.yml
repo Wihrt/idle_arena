@@ -1,0 +1,32 @@
+- name: Generate invetory
+  hosts: localhost
+  tags: [remote]
+  tasks:
+    - name: Add target host
+      add_host:
+        hostname: '{{ target }}'
+        ansible_ssh_user: '{{ target_user }}'
+        ansible_private_key_file: '{{ playbook_dir }}/{{ private_key }}'
+        ansible_python_interpreter: /usr/bin/python3
+  
+
+- name: Install Components on Remote
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Install components
+      include_role:
+        name: install
+      tags: remote
+
+- name: Install Components on Local
+  hosts: localhost
+  gather_facts: true
+  tasks:
+    - name: Install components
+      include_role:
+        name: install
+      tags: local
+
+
+

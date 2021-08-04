@@ -1,0 +1,53 @@
+repositories:
+  - name: stable
+    url: https://charts.helm.sh/stable
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+
+templates:
+  environment: &environment
+    missingFileHandler: Warn
+    values:
+    - envs/values.gotmpl
+    - envs/{{ .Environment.Name }}/values.gotmpl
+    - mongo:
+        host: mongo-mongodb.arena-{{.Environment.Name }}
+    - bot:
+        backend:
+          host: backend.arena-{{ .Environment.Name }}
+    secrets:
+    - envs/{{ .Environment.Name }}/secrets.yaml
+
+  release: &release
+    chart: ../helm/{{`{{ .Release.Name }}`}}
+    namespace: arena-{{`{{.Environment.Name }}`}}
+    createNamespace: true
+    missingFileHandler: Warn
+    values:
+      - config/{{`{{ .Release.Name }}`}}/values.gotmpl
+      - config/{{`{{ .Release.Name }}`}}/{{`{{.Environment.Name }}`}}/values.yaml
+    secrets:
+      - config/{{`{{ .Release.Name }}`}}/{{`{{.Environment.Name }}`}}/secrets.yaml
+
+
+environments:
+  develop:
+    <<: *environment
+  production:
+    <<: *environment
+
+
+releases:
+- name: bot
+  <<: *release
+  needs:
+    - backend
+- name: backend
+  <<: *release
+  needs:
+    - mongo
+- name: mongo
+  <<: *release
+  chart: bitnami/mongodb
+
+
