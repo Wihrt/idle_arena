@@ -30,6 +30,7 @@ jobs:
     name: "Prepare environment"
     needs:
       - docker
+    runs-on: ubuntu-latest
     container:
       image: env.DOCKER_USER/ansible:env.ANSIBLE_VERSION
     steps:
@@ -58,8 +59,9 @@ jobs:
     name: "Deploy application"
     needs:
       - ansible
+    runs-on: ubuntu-latest
     container:
-      image: quay.io/roboll/helmfile:helm3-v0.140.0
+      image: quay.io/roboll/helmfile:helm3-env.HELMFILE_VERSION
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
