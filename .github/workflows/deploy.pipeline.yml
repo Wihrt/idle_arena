@@ -12,15 +12,13 @@ on:
 env:
   DOCKER_USER: megalooo
   PRIVATE_KEY: vps_key_private
-  ANSIBLE_VERSION: "4.3.0"
-  HELMFILE_VERSION: v0.140.0
 
 jobs:
   ansible:
     name: "Prepare environment"
     runs-on: ubuntu-latest
     container:
-      image: ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }}
+      image: megalooo/ansible:4.3.0
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -49,7 +47,7 @@ jobs:
       - ansible
     runs-on: ubuntu-latest
     container:
-      image: quay.io/roboll/helmfile:helm3-env.HELMFILE_VERSION
+      image: quay.io/roboll/helmfile:helm3-v0.140.0
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
