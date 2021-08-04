@@ -37,7 +37,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: kubeconfig
-        path: kubeconfig
+        path: ansible/kubeconfig
         retention-days: 1
   
   helm:
