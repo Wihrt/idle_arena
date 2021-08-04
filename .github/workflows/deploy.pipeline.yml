@@ -15,13 +15,24 @@ env:
   HELMFILE_VERSION: v0.140.0
 
 jobs:
-  docker:
-    name: "Build docker image with Ansible"
+  docker-pull:
+    name: "Pull docker image"
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+    - name: Pull docker image
+
+  docker-build:
+    name: "Build docker image with Ansible"
+    runs-on: ubuntu-latest
+    needs:
+      - docker-pull
+    if: needs.docker-pull.result == 'failure'
+    steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+    - name: Docker login
+      run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
     - name: Build Ansible Docker image
       run: |-
         cd ansible
@@ -31,7 +42,8 @@ jobs:
   ansible:
     name: "Prepare environment"
     needs:
-      - docker
+      - docker-pull
+      - docker-build
     runs-on: ubuntu-latest
     container:
       image: env.DOCKER_USER/ansible:env.ANSIBLE_VERSION
