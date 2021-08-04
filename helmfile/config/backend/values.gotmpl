@@ -1,5 +1,6 @@
 env:
-  httpPort: {{ .Values.backend.env.httpPort }}
-  mongoHost: {{ .Values.backend.env.mongoHost }}
-  mongoPort: {{ .Values.backend.env.mongoPort }}
-  mongoUri: mongodb://{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{ .Values.backend.env.mongoHost }}:{{ .Values.backend.env.mongoPort }}/{{ .Values.mongo.auth.database }}
+  httpPort: {{ .Values.backend.port }}
+  mongo:
+    host: {{ .Values.mongo.host }}
+    port: {{ .Values.mongo.port }}
+    uri: mongodb://{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{ .Values.mongo.host }}:{{ .Values.mongo.port }}/{{ .Values.mongo.auth.database }}

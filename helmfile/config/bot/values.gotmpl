@@ -1,6 +1,7 @@
 env:
-  guildID: {{ .Values.bot.env.guildID }}
-  appID: {{ .Values.bot.env.appID }}
-  arenaHost: {{ .Values.bot.env.arenaHost }}
-  arenaPort: {{ .Values.bot.env.arenaPort }}
-  arenaUrl: http://{{ .Values.bot.env.arenaHost }}:{{ .Values.bot.env.arenaPort }}
+  guildID: {{ .Values.bot.guildID }}
+  appID: {{ .Values.bot.appID }}
+  arena:
+    host: {{ .Values.bot.backend.host }}
+    port: {{ .Values.backend.port }}
+    url: http://{{ .Values.bot.backend.host }}:{{ .Values.backend.port }}

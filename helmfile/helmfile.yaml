@@ -4,41 +4,47 @@ repositories:
   - name: bitnami
     url: https://charts.bitnami.com/bitnami
 
-environments:
-  develop:
-    values:
-    - envs/common.gotmpl
-    - envs/develop.gotmpl
-  production:
-    values:
-    - envs/common.gotmpl
-    - envs/production.gotmpl
-
 templates:
-  default: &default
+  environment: &environment
+    values:
+    - envs/common.gotmpl
+    - envs/{{.Environment.Name }}.gotmpl
+    - mongo:
+        host: mongo-mongodb.arena-{{.Environment.Name }}
+    - bot:
+        backend:
+          host: backend.arena-{{.Environment.Name }}
+
+  release: &release
     chart: ../helm/{{`{{ .Release.Name }}`}}
-    namespace: arena
+    namespace: arena-{{`{{.Environment.Name }}`}}
     createNamespace: true
     missingFileHandler: Warn
     values:
-      - config/{{`{{ .Release.Name }}`}}/values.yaml
       - config/{{`{{ .Release.Name }}`}}/values.gotmpl
-      - config/{{`{{ .Release.Name }}`}}/{{`{{.Environment.Name }}`}}.values.yaml
+      - config/{{`{{ .Release.Name }}`}}/{{`{{.Environment.Name }}`}}/values.yaml
     secrets:
-      - config/{{`{{ .Release.Name }}`}}/{{`{{.Environment.Name }}`}}.secrets.yaml
+      - config/{{`{{ .Release.Name }}`}}/{{`{{.Environment.Name }}`}}/secrets.yaml
+
+
+environments:
+  develop:
+    <<: *environment
+  production:
+    <<: *environment
+
 
 releases:
 - name: bot
-  <<: *default
+  <<: *release
   needs:
     - backend
 - name: backend
-  <<: *default
+  <<: *release
   needs:
     - mongo
 - name: mongo
-  <<: *default
+  <<: *release
   chart: bitnami/mongodb
-  wait: true
 
 

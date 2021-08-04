@@ -5,7 +5,7 @@
   ignore_errors: true
 
 - name: Install Helm Secrets plugin
-  shell: 'helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.2'
+  command: 'helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.2'
   tags: helm-plugins
   when: helm_secrets_installed.rc != 0
 
@@ -29,3 +29,20 @@
       deb: "{{ sops_deb_package.dest }}"
     tags: helm-plugins
   when: sops_installed.rc != 0
+
+- name: Check if GPG is installed
+  command: "which gpg"
+  register: gpg_installed
+  ignore_errors: true
+  tags: helm-plugins
+
+- block:
+  - name: Install GPG
+    apt:
+      name: '{{ package }}'
+      state: present
+    loop:
+      - gpg
+    loop_control:
+      loop_var: package
+  when: gpg_installed.rc != 0
