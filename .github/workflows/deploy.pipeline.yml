@@ -7,6 +7,9 @@ on:
     types:
     - completed
 
+env:
+  PRIVATE_KEY: vps_private_key
+
 jobs:
   ansible:
     name: "Prepare environment"
@@ -56,7 +59,7 @@ jobs:
         cd ansible
         ansible-playbook -t local,kubectl,helm,helm-plugins,helmfile playbook.yml
     # - name: Run Helmfile - Develop
-    #   if: github.ref != 'refs/head/master'
+    #   if: github.ref != 'refs/head/main'
     #   env:
     #     KUBECONFIG: ../kubeconfig
     #     ENVIRONMENT: develop
@@ -64,7 +67,7 @@ jobs:
     #     cd helmfile
     #     helmfile sync -e $ENVIRONMENT
     # - name: Run Helmfile - Production
-    #   if: github.ref == 'refs/head/master'
+    #   if: github.ref == 'refs/head/main'
     #   env:
     #     KUBECONFIG: ../kubeconfig
     #     ENVIRONMENT: production
