@@ -11,9 +11,6 @@ jobs:
   ansible:
     name: "Prepare environment"
     runs-on: ubuntu-latest
-    needs:
-      - docker-bot
-      - docker-backend
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     - name: Checkout repository
