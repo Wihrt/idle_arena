@@ -37,8 +37,8 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: kubeconfig
-        path: $HOME/kubeconfig
-        retentions-days: 1
+        path: kubeconfig
+        retention-days: 1
   
   helm:
     name: "Deploy application"
