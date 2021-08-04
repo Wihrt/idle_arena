@@ -23,10 +23,8 @@ jobs:
     - name: Decrypt private key
       run: |-
         cd ansible
-        echo ${{ secrets.VAULT_PASSWORD }} > vault_password
-        ansible-vault decrypt --vault-password-file vault_password $PRIVATE_KEY
+        echo "${{ secrets.SSH_KEY }}" > $PRIVATE_KEY
         chmod 0600 $PRIVATE_KEY
-      # Store private key in secrets and write from it ?
     - name: Install prerequistes on server
       run: |- 
         cd ansible
@@ -61,7 +59,7 @@ jobs:
         ansible-playbook -b -t local,kubectl,helm,helm-plugins,helmfile playbook.yml
     - name: Inject GPG private key
       run: |-
-        echo ${{ secrets.PGP_KEY }} > $PRIVATE_KEY
+        echo "${{ secrets.PGP_KEY }}" > $PRIVATE_KEY
         gpg --import $PRIVATE_KEY
       env:
         PRIVATE_KEY: private.key
