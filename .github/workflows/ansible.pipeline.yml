@@ -10,9 +10,7 @@ on:
 
 env:
   DOCKER_USER: megalooo
-  PRIVATE_KEY: vps_key_private
   ANSIBLE_VERSION: "4.3.0"
-  HELMFILE_VERSION: v0.140.0
 
 jobs:
   docker:
