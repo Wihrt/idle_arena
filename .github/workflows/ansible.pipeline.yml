@@ -1,0 +1,42 @@
+name: "Build Ansible image"
+
+on:
+  workflow_run:
+    workflows: ["Build Docker images"]
+    branches: ["main", "develop"]
+    types:
+    - completed
+
+
+env:
+  DOCKER_USER: megalooo
+  PRIVATE_KEY: vps_key_private
+  ANSIBLE_VERSION: "4.3.0"
+  HELMFILE_VERSION: v0.140.0
+
+jobs:
+  docker-pull:
+    name: "Pull docker image"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    continue-on-error: true
+    steps:
+    - name: Pull docker image
+      run: docker pull ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }}
+    
+  docker-build:
+    name: "Build docker image with Ansible"
+    runs-on: ubuntu-latest
+    needs:
+      - docker-pull
+    if: needs.docker-pull.result == 'failure'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Docker login
+      run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build Ansible Docker image
+      run: |-
+        cd ansible
+        docker build --build-arg ANSIBLE_VERSION=${{ env.ANSIBLE_VERSION }} -t ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} .
+        docker push ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }}
