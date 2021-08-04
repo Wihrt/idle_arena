@@ -51,6 +51,8 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: kubeconfig
+    - name: Change right on kubeconfig
+      run: chmod 0600 kubeconfig
     - name: Install Ansible
       run: pip install ansible
     - name: Install Helm and Helmfile

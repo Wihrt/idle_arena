@@ -9,6 +9,16 @@
   tags: helm-plugins
   when: helm_secrets_installed.rc != 0
 
+- name: List plugins
+  command: helm plugin list
+  register: helm_plugin_list
+  tags: helm-plugins
+
+- name: Display list plugin
+  debug:
+    var: helm_plugin_list.stdout_lines
+  tags: helm-plugins
+
 - name: Check if SOPS is installed
   command: "which sops"
   register: sops_installed
