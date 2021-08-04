@@ -8,7 +8,7 @@ on:
     - completed
 
 env:
-  PRIVATE_KEY: vps_private_key
+  PRIVATE_KEY: vps_key_private
 
 jobs:
   ansible:
