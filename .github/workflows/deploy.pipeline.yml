@@ -57,7 +57,7 @@ jobs:
     - name: Install Helm and Helmfile
       run: |-
         cd ansible
-        ansible-playbook -t local,kubectl,helm,helm-plugins,helmfile playbook.yml
+        ansible-playbook -b -t local,kubectl,helm,helm-plugins,helmfile playbook.yml
     # - name: Run Helmfile - Develop
     #   if: github.ref != 'refs/heads/main'
     #   env:
