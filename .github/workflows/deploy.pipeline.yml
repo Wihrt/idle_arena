@@ -59,7 +59,7 @@ jobs:
         cd ansible
         ansible-playbook -t local,kubectl,helm,helm-plugins,helmfile playbook.yml
     # - name: Run Helmfile - Develop
-    #   if: github.ref != 'refs/head/main'
+    #   if: github.ref != 'refs/heads/main'
     #   env:
     #     KUBECONFIG: ../kubeconfig
     #     ENVIRONMENT: develop
@@ -67,7 +67,7 @@ jobs:
     #     cd helmfile
     #     helmfile sync -e $ENVIRONMENT
     # - name: Run Helmfile - Production
-    #   if: github.ref == 'refs/head/main'
+    #   if: github.ref == 'refs/heads/main'
     #   env:
     #     KUBECONFIG: ../kubeconfig
     #     ENVIRONMENT: production

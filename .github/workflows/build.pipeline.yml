@@ -27,12 +27,12 @@ jobs:
           docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
       - name: Tag Docker image to latest
-        if: github.ref != 'refs/head/main'
+        if: github.ref != 'refs/heads/main'
         run: |-
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
       - name: Tag Docker image to main
-        if: github.ref == 'refs/head/main'
+        if: github.ref == 'refs/heads/main'
         run: |-
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
@@ -57,12 +57,12 @@ jobs:
           docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
       - name: Tag Docker image to latest
-        if: github.ref != 'refs/head/main'
+        if: github.ref != 'refs/heads/main'
         run: |-
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
       - name: Tag Docker image to master
-        if: github.ref == 'refs/head/main'
+        if: github.ref == 'refs/heads/main'
         run: |-
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
