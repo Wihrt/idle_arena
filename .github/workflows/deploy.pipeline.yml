@@ -72,6 +72,8 @@ jobs:
         ENVIRONMENT: develop
       run: |-
         cd helmfile
+        helm plugin list
+        helm secrets dec envs/production/secrets.yaml 
         helmfile -e $ENVIRONMENT sync 
     - name: Run Helmfile - Production
       if: github.ref == 'refs/heads/main'
