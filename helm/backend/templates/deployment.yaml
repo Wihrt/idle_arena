@@ -48,7 +48,7 @@ spec:
           command: ["/usr/bin/arenaBackend"]
           env:
             - name: HTTP_PORT
-              value: {{ .Values.http.port }}
+              value: {{ .Values.http.port | quote }}
             - name: MONGO_URL
               valueFrom:
                 secretKeyRef:
