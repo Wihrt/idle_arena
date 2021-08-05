@@ -12,7 +12,10 @@ services:
             APP_ID: $APP_ID
             GUILD_ID: $GUILD_ID
             BOT_TOKEN: $BOT_TOKEN
+            METRICS_PORT: $METRICS_PORT
             ARENA_URL: http://backend:$BACKEND_PORT
+        ports:
+            - "2113:$METRICS_PORT"
         entrypoint: ["/usr/bin/arenaBot"]
         networks:
             - arenaFront
@@ -27,9 +30,11 @@ services:
         environment:
             MONGO_URL: mongodb://$MONGODB_USER:$MONGODB_PASSWORD@mongo:27017/$MONGODB_DATABASE?authSource=admin
             HTTP_PORT: $BACKEND_PORT
+            METRICS_PORT: $METRICS_PORT
         entrypoint: ["/usr/bin/arenaBackend"]
         ports:
             - "$BACKEND_PORT:$BACKEND_PORT"
+            - "$METRICS_PORT:$METRICS_PORT"
         networks:
             - arenaFront
             - arenaBack
@@ -49,6 +54,15 @@ services:
         volumes:
             - ./mongo:/docker-entrypoint-initdb.d/
         restart: always
+    mongo-exporter:
+        image: bitnami/mongodb-exporter:0.11.2
+        container_name: mongo-exporter
+        environment:
+            MONGODB_URI: mongodb://$MONGODB_ROOT_USER:$MONGODB_ROOT_PASSWORD@mongo:27017/admin
+        ports:
+            - 9216:9216
+        networks:
+            - arenaAdmin
     mongo-express:
         image: mongo-express:latest
         container_name: mongo-express

@@ -65,5 +65,9 @@ spec:
               secretKeyRef:
                 name: {{ include "bot.fullname" . }}
                 key: botToken
+           ports:
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

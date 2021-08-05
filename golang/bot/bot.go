@@ -1,12 +1,14 @@
 package main
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/diamondburned/arikawa/v2/api"
 	"github.com/diamondburned/arikawa/v2/discord"
 	"github.com/diamondburned/arikawa/v2/gateway"
 	"github.com/diamondburned/arikawa/v2/session"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/wihrt/idle_arena/bot/commands"
 	"github.com/wihrt/idle_arena/logging"
 	"go.uber.org/zap"
@@ -89,8 +91,8 @@ func main() {
 
 	appID := discord.AppID(mustSnowflakeEnv("APP_ID"))
 	guildID := discord.GuildID(mustSnowflakeEnv("GUILD_ID"))
-
 	token := os.Getenv("BOT_TOKEN")
+	metricsPort := os.Getenv("METRICS_PORT")
 	if token == "" {
 		zap.L().Fatal("No $BOT_TOKEN given")
 	}
@@ -130,6 +132,10 @@ func main() {
 
 	bot.GetGuildCommands()
 	bot.RegisterCommands(commands.RegisteredCommands)
+
+	zap.L().Fatal("Error when serving",
+		zap.Error(http.ListenAndServe(":"+metricsPort, promhttp.Handler())),
+	)
 
 	// Block forever.
 	select {}

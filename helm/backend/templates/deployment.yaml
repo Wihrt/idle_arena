@@ -48,7 +48,9 @@ spec:
           command: ["/usr/bin/arenaBackend"]
           env:
             - name: HTTP_PORT
-              value: {{ .Values.env.httpPort | quote }}
+              value: {{ .Values.http.port }}
+            - name: METRICS_PORT
+              value: {{ .Values.metrics.port }}
             - name: MONGO_URL
               valueFrom:
                 secretKeyRef:
@@ -56,7 +58,10 @@ spec:
                   key: mongoUri
           ports:
             - name: http
-              containerPort: {{ .Values.env.httpPort }}
+              containerPort: {{ .Values.http.port }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
               protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

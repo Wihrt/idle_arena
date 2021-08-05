@@ -1,5 +1,9 @@
+http:
+  port: {{ .Values.backend.http.port }}
+metrics:
+  port: {{ .Values.backend.metrics.port }}
+
 env:
-  httpPort: {{ .Values.backend.port }}
   mongo:
     host: {{ .Values.mongo.host }}
     port: {{ .Values.mongo.port }}
