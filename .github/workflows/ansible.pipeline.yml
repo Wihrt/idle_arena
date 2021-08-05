@@ -22,12 +22,9 @@ jobs:
       uses: actions/checkout@v2
     - name: Docker login
       run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
-    - name: Pull docker image
-      run: docker pull ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }}
-      continue-on-error: true
     - name: Build Ansible Docker image
-      if: ${{ failure() }}
       run: |-
-        cd ansible
-        docker build --build-arg ANSIBLE_VERSION=${{ env.ANSIBLE_VERSION }} -t ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} .
-        docker push ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }}
+        docker pull ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} || 
+        (cd ansible &&
+        docker build --build-arg ANSIBLE_VERSION=${{ env.ANSIBLE_VERSION }} -t ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} . && 
+        docker push ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }})
