@@ -24,8 +24,6 @@ serviceAccount:
 
 http:
   port: 5000
-metrics:
-  port: 2112
 
 
 env:

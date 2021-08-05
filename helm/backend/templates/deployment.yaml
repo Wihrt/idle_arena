@@ -49,8 +49,6 @@ spec:
           env:
             - name: HTTP_PORT
               value: {{ .Values.http.port }}
-            - name: METRICS_PORT
-              value: {{ .Values.metrics.port }}
             - name: MONGO_URL
               valueFrom:
                 secretKeyRef:
