@@ -65,6 +65,9 @@ jobs:
         gpg --import $PRIVATE_KEY
         rm -f $PRIVATE_KEY
         gpg --list-keys
+    - name: Debug
+      run: |-
+        helm plugin list
     - name: Run Helmfile - Develop
       if: github.ref != 'refs/heads/main'
       env:
@@ -72,8 +75,6 @@ jobs:
         ENVIRONMENT: develop
       run: |-
         cd helmfile
-        helm plugin list
-        helm secrets dec envs/production/secrets.yaml 
         helmfile -e $ENVIRONMENT sync 
     - name: Run Helmfile - Production
       if: github.ref == 'refs/heads/main'
