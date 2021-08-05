@@ -3,5 +3,5 @@ env:
   appID: {{ .Values.bot.appID }}
   arena:
     host: {{ .Values.bot.backend.host }}
-    port: 80
-    url: http://{{ .Values.bot.backend.host }}:80
+    port: {{ .Values.backend.http.port }}
+    url: http://{{ .Values.bot.backend.host }}:{{ .Values.backend.http.port }}
