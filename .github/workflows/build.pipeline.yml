@@ -7,7 +7,6 @@ env:
   ANSIBLE_VERSION: "4.3.0"
 
 jobs:
-
   docker-bot:
     name: "Build and Push Docker bot image"
     runs-on: ubuntu-latest
@@ -67,7 +66,6 @@ jobs:
   docker-ansible:
     name: "Pull or build Ansible docker image"
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
