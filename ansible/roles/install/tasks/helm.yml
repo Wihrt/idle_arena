@@ -34,8 +34,4 @@
     loop_control:
       loop_var: package_helm
     tags: helm
-  
-  - name: Set alias for Helm
-    command: "alias helm='helm --kubeconfig /etc/rancher/k3s/k3s.yaml'"
-    tags: helm
   when: helm_installed.rc != 0
