@@ -145,7 +145,7 @@ jobs:
         ENVIRONMENT: develop
       run: |-
         cd helmfile
-        helmfile -e $ENVIROMENT destroy
+        helmfile -e $ENVIRONMENT destroy
         helmfile -e $ENVIRONMENT sync 
     - name: Run Helmfile - Production
       if: github.ref == 'refs/heads/main'
