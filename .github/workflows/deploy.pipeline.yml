@@ -67,6 +67,8 @@ jobs:
         gpg --list-keys
     - name: Debug
       run: |-
+        whoami
+        which sops
         helm plugin list
     - name: Run Helmfile - Develop
       if: github.ref != 'refs/heads/main'
