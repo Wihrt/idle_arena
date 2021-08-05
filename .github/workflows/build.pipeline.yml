@@ -106,7 +106,7 @@ jobs:
       with:
         name: kubeconfig
         path: ansible/kubeconfig
-        retention-days: 1
+        retention-days: 0
   
   helmfile:
     name: "Deploy application"

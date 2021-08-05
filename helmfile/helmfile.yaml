@@ -51,15 +51,5 @@ releases:
   - name: mongo
     <<: *release
     chart: bitnami/mongodb
-  - name: mongo-exporter
-    <<: *release
-    chart: prometheus-community/prometeus-mongodb-exporter
-    needs:
-      - mongo
-      - prometheus
-  - name: prometheus
-    <<: *release
-    namespace: monitoring
-    chart: prometheus-community/kube-prometheus-stack
 
 
