@@ -64,12 +64,10 @@ jobs:
         echo "${{ secrets.PGP_KEY }}" > $PRIVATE_KEY
         gpg --import $PRIVATE_KEY
         rm -f $PRIVATE_KEY
-        gpg --list-keys
-    - name: Debug
+    - name: Install Helm plugins
       run: |-
-        whoami
-        which sops
-        helm plugin list
+        helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.2
+        helm plugin install https://github.com/databus23/helm-diff
     - name: Run Helmfile - Develop
       if: github.ref != 'refs/heads/main'
       env:
