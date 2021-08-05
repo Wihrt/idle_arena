@@ -9,6 +9,7 @@
     apt:
       name: '{{ package }}'
       state: present
+      update_cache: yes
     loop:
       - apt-transport-https
       - ca-certificates
@@ -30,6 +31,7 @@
   - name: Install Docker
     apt:
       name: '{{ package_docker }}'
+      update_cache: yes
     loop:
       - docker-ce
       - docker-ce-cli
