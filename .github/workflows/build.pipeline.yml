@@ -85,6 +85,10 @@ jobs:
       - docker-ansible
     container:
       image: megalooo/ansible:4.3.0
+    env:
+      PRIVATE_KEY: "vps_private_key"
+      TARGET_HOST: ${{ secrets.TARGET_HOST }}
+      TARGET_USER: ${{ secrets.TARGET_USER }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -97,9 +101,6 @@ jobs:
       run: |- 
         cd ansible
         ansible-playbook -e "target=$TARGET_HOST" -e "target_user=$TARGET_USER" -e "private_key=$PRIVATE_KEY" -t remote,k3s,kubectl,helm,kubeconfig playbook.yml
-      env:
-        TARGET_HOST: ${{ secrets.TARGET_HOST }}
-        TARGET_USER: ${{ secrets.TARGET_USER }}
     - name: Upload kubeconfig file
       uses: actions/upload-artifact@v2
       with:
