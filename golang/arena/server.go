@@ -135,7 +135,12 @@ func (a *ArenaServer) GetManager(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(200)
-	w.Write(data)
+	_, err = w.Write(data)
+	if err != nil {
+		zap.L().Error("Cannot write data",
+			zap.Error(err),
+		)
+	}
 }
 
 func (a *ArenaServer) DeleteManager(w http.ResponseWriter, r *http.Request) {
@@ -233,7 +238,12 @@ func (a *ArenaServer) NewGladiator(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(201)
-	w.Write(data)
+	_, err = w.Write(data)
+	if err != nil {
+		zap.L().Error("Cannot write data",
+			zap.Error(err),
+		)
+	}
 }
 
 func (a *ArenaServer) GetGladiators(w http.ResponseWriter, r *http.Request) {
@@ -277,7 +287,12 @@ func (a *ArenaServer) GetGladiators(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(200)
-	w.Write(data)
+	_, err = w.Write(data)
+	if err != nil {
+		zap.L().Error("Cannot write data",
+			zap.Error(err),
+		)
+	}
 }
 
 func (a *ArenaServer) GetGladiator(w http.ResponseWriter, r *http.Request) {
@@ -337,7 +352,12 @@ func (a *ArenaServer) GetGladiator(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(200)
-	w.Write(data)
+	_, err = w.Write(data)
+	if err != nil {
+		zap.L().Error("Cannot write data",
+			zap.Error(err),
+		)
+	}
 }
 
 func (a *ArenaServer) FightGladiator(w http.ResponseWriter, r *http.Request) {
@@ -419,7 +439,12 @@ func (a *ArenaServer) FightGladiator(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(200)
-	w.Write(data)
+	_, err = w.Write(data)
+	if err != nil {
+		zap.L().Error("Cannot write data",
+			zap.Error(err),
+		)
+	}
 }
 
 func (a *ArenaServer) DeleteGladiator(w http.ResponseWriter, r *http.Request) {

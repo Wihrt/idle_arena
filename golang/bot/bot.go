@@ -127,7 +127,12 @@ func main() {
 	}
 	defer bot.Session.Close()
 
-	bot.GetGuildCommands()
+	err = bot.GetGuildCommands()
+	if err != nil {
+		zap.L().Fatal("Failed to get guild commands",
+			zap.Error(err),
+		)
+	}
 	bot.RegisterCommands(commands.RegisteredCommands)
 
 	// Block forever.
