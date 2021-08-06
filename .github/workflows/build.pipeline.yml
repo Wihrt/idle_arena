@@ -5,7 +5,7 @@ on: ["push", "pull_request"]
 env:
   DOCKER_USER: megalooo
   ANSIBLE_VERSION: "4.3.0"
-  GOLANG_VERSION: "2.8.1"
+  GOSEC_VERSION: "2.8.1"
 
 jobs:
   golang-security:
