@@ -16,11 +16,11 @@ jobs:
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
         with:
-          args: "-fmt json -out gosec.result.json golang/..."
-      - name: Upload kubeconfig file
+          args: "-no-fail -fmt json -out gosec.result.json golang/..."
+      - name: Upload gosec.result.json file
         uses: actions/upload-artifact@v2
         with:
-          name: kubeconfig
+          name: gosec
           path: gosec.result.json
           retention-days: 7
 
