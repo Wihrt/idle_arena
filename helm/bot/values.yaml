@@ -25,10 +25,11 @@ env:
   botToken: ""
   appID: ""
   guildID: ""
-  arena:
-    host: arena
-    port: 80
-    url: http://arena:80
+
+arena:
+  host: arena
+  port: 80
+  url: http://arena:80
 
 podAnnotations: {}
 
