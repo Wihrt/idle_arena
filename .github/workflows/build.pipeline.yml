@@ -22,7 +22,7 @@ jobs:
       - name: Run Gosec Security Scanner
         working-directory: golang
         run: |-
-          gosec -no-fail -fmt json -out gosec.result.json ./...
+          ./gosec -no-fail -fmt json -out gosec.result.json ./...
       - name: Upload gosec.result.json file
         uses: actions/upload-artifact@v2
         with:
