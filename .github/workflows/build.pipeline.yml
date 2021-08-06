@@ -5,6 +5,7 @@ on: ["push", "pull_request"]
 env:
   DOCKER_USER: megalooo
   ANSIBLE_VERSION: "4.3.0"
+  GOLANG_VERSION: "2.8.1"
 
 jobs:
   golang-security:
@@ -13,15 +14,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Download gosec
+        working-directory: golang
+        run: |-
+          curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $PWD v${{ env.GOSEC_VERSION }}
+          chmod u+x gosec
       - name: Run Gosec Security Scanner
-        uses: securego/gosec@master
-        with:
-          args: "-no-fail -fmt json -out gosec.result.json golang/..."
+        working-directory: golang
+        run: |-
+          gosec -no-fail -fmt json -out gosec.result.json ./...
       - name: Upload gosec.result.json file
         uses: actions/upload-artifact@v2
         with:
           name: gosec
-          path: gosec.result.json
+          path: golang/gosec.result.json
           retention-days: 7
 
   docker-bot:
@@ -93,10 +99,10 @@ jobs:
     - name: Docker login
       run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
     - name: Build Ansible Docker image
+      working-directory: ansible
       run: |-
         docker pull ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} || 
-        (cd ansible &&
-        docker build --build-arg ANSIBLE_VERSION=${{ env.ANSIBLE_VERSION }} -t ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} . && 
+        (docker build --build-arg ANSIBLE_VERSION=${{ env.ANSIBLE_VERSION }} -t ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} . && 
         docker push ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }})
   
   ansible:
@@ -114,13 +120,13 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
     - name: Decrypt private key
+      working-directory: ansible
       run: |-
-        cd ansible
         echo "${{ secrets.SSH_KEY }}" > $PRIVATE_KEY
         chmod 0600 $PRIVATE_KEY
     - name: Install prerequistes on server
+      working-directory: ansible
       run: |- 
-        cd ansible
         ansible-playbook -e "target=$TARGET_HOST" -e "target_user=$TARGET_USER" -e "private_key=$PRIVATE_KEY" -t remote,k3s,kubectl,helm,kubeconfig playbook.yml
     - name: Upload kubeconfig file
       uses: actions/upload-artifact@v2
@@ -160,20 +166,20 @@ jobs:
         helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.2
         helm plugin install https://github.com/databus23/helm-diff
     - name: Run Helmfile - Develop
+      working-directory: helmfile
       if: github.ref != 'refs/heads/main'
       env:
         KUBECONFIG: ../kubeconfig
         ENVIRONMENT: develop
       run: |-
-        cd helmfile
         helmfile -e $ENVIRONMENT destroy
         helmfile -e $ENVIRONMENT sync 
     - name: Run Helmfile - Production
+      working-directory: helmfile
       if: github.ref == 'refs/heads/main'
       env:
         KUBECONFIG: ../kubeconfig
         ENVIRONMENT: production
       run: |-
-        cd helmfile
         helmfile -e $ENVIRONMENT sync
 
