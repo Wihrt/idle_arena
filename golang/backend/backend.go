@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/wihrt/idle_arena/arena"
 	"github.com/wihrt/idle_arena/logging"
 	"go.uber.org/zap"
@@ -23,10 +22,9 @@ func init() {
 func main() {
 
 	var (
-		mongoDBURI  = os.Getenv("MONGO_URL")
-		httpPort    = os.Getenv("HTTP_PORT")
-		metricsPort = os.Getenv("METRICS_PORT")
-		APIBase     = "/" + arena.APIBase
+		mongoDBURI = os.Getenv("MONGO_URL")
+		httpPort   = os.Getenv("HTTP_PORT")
+		APIBase    = "/" + arena.APIBase
 	)
 
 	zap.L().Info("Starting backend")
@@ -42,10 +40,6 @@ func main() {
 	router.HandleFunc(strings.Join([]string{APIBase, "managers", "{id}", "gladiators"}, "/"), a.NewGladiator).Methods("POST")
 	router.HandleFunc(strings.Join([]string{APIBase, "managers", "{id}", "gladiators", "{id}", "fight"}, "/"), a.FightGladiator).Methods("POST")
 	router.HandleFunc(strings.Join([]string{APIBase, "managers", "{id}", "gladiators", "{id}"}, "/"), a.DeleteGladiator).Methods("DELETE")
-
-	zap.L().Fatal("Error when serving",
-		zap.Error(http.ListenAndServe(":"+metricsPort, promhttp.Handler())),
-	)
 
 	zap.L().Fatal("Error when serving",
 		zap.Error(http.ListenAndServe(":"+httpPort, router)),
