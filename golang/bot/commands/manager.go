@@ -3,8 +3,9 @@ package commands
 import (
 	"os"
 
-	"github.com/diamondburned/arikawa/v2/api"
-	"github.com/diamondburned/arikawa/v2/gateway"
+	"github.com/diamondburned/arikawa/v3/api"
+	"github.com/diamondburned/arikawa/v3/gateway"
+	"github.com/diamondburned/arikawa/v3/utils/json/option"
 	"github.com/wihrt/idle_arena/arena"
 	"github.com/wihrt/idle_arena/manager"
 	"go.uber.org/zap"
@@ -32,7 +33,7 @@ func RegisterManager(e *gateway.InteractionCreateEvent) (api.InteractionResponse
 	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Content: "You are now registered as an Arena Manager !",
+			Content: option.NewNullableString("You are now registered as an Arena Manager !"),
 		},
 	}
 
@@ -60,7 +61,7 @@ func RetireManager(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Content: "You are retired as an Arena Manager !",
+			Content: option.NewNullableString("You are retired as an Arena Manager !"),
 		},
 	}
 

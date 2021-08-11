@@ -5,9 +5,10 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/diamondburned/arikawa/v2/api"
-	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/arikawa/v2/gateway"
+	"github.com/diamondburned/arikawa/v3/api"
+	"github.com/diamondburned/arikawa/v3/discord"
+	"github.com/diamondburned/arikawa/v3/gateway"
+	"github.com/diamondburned/arikawa/v3/utils/json/option"
 	"github.com/wihrt/idle_arena/arena"
 	"github.com/wihrt/idle_arena/gladiator"
 	"github.com/wihrt/idle_arena/utils"
@@ -19,6 +20,7 @@ func HireGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 	var (
 		formatMsg = "You have hired %s !"
 		msg       string
+		eArray    []discord.Embed
 		mID       = generateManagerID(e)
 		url       = os.Getenv("ARENA_URL")
 		a         = arena.NewClient(url)
@@ -37,12 +39,13 @@ func HireGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 
 	msg = fmt.Sprintf(formatMsg, g.Name)
 	embed := gladiatorToEmbed(g)
+	eArray = append(eArray, embed)
 
 	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Content: msg,
-			Embeds:  []discord.Embed{embed},
+			Content: option.NewNullableString(msg),
+			Embeds:  &eArray,
 		},
 	}
 
@@ -55,36 +58,68 @@ func GetGladiators(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 		gArray []gladiator.Gladiator
 		eArray []discord.Embed
 		mID    = generateManagerID(e)
-		name   = utils.FetchValue(e.Data.Options, "name")
-		gID    = generateGladiatorID(mID, name)
-		url    = os.Getenv("ARENA_URL")
-		a      = arena.NewClient(url)
-		data   api.InteractionResponse
+		// name   = fetchValue(e.Data.Options, "name")
+		// gID    = generateGladiatorID(mID, name)
+		url         = os.Getenv("ARENA_URL")
+		a           = arena.NewClient(url)
+		data        api.InteractionResponse
+		menuOptions []discord.SelectComponentOption
 	)
 
-	if len(e.Data.Options) == 1 {
-		g, err := a.GetGladiator(mID, gID)
-		if err != nil {
-			zap.L().Error("Cannot get gladiators",
-				zap.String("UserID", e.Member.User.ID.String()),
-				zap.String("GuildID", e.GuildID.String()),
-				zap.Error(err),
-			)
-			return data, err
-		}
-		gArray = append(gArray, g)
-	} else {
-		g, err := a.GetGladiators(mID)
-		if err != nil {
-			zap.L().Error("Cannot get gladiator",
-				zap.String("UserID", e.Member.User.ID.String()),
-				zap.String("GuildID", e.GuildID.String()),
-				zap.Error(err),
-			)
-			return data, err
-		}
-		gArray = append(gArray, g...)
+	g, err := a.GetGladiators(mID)
+	if err != nil {
+		zap.L().Error("Cannot get gladiator",
+			zap.String("UserID", e.Member.User.ID.String()),
+			zap.String("GuildID", e.GuildID.String()),
+			zap.Error(err),
+		)
+		return data, err
 	}
+	gArray = append(gArray, g...)
+
+	for _, g := range gArray {
+		option := discord.SelectComponentOption{
+			Label: g.Name,
+			Value: g.Name,
+		}
+		menuOptions = append(menuOptions, option)
+	}
+	allOptions := discord.SelectComponentOption{
+		Label:   "all",
+		Value:   "all",
+		Default: true,
+	}
+	menuOptions = append(menuOptions, allOptions)
+
+	selectMenu := discord.SelectComponent{
+		CustomID: "name",
+		Options:  menuOptions,
+		Disabled: false,
+	}
+
+	// if len(e.Data.Options) == 1 {
+	// 	g, err := a.GetGladiator(mID, gID)
+	// 	if err != nil {
+	// 		zap.L().Error("Cannot get gladiators",
+	// 			zap.String("UserID", e.Member.User.ID.String()),
+	// 			zap.String("GuildID", e.GuildID.String()),
+	// 			zap.Error(err),
+	// 		)
+	// 		return data, err
+	// 	}
+	// 	gArray = append(gArray, g)
+	// } else {
+	// 	g, err := a.GetGladiators(mID)
+	// 	if err != nil {
+	// 		zap.L().Error("Cannot get gladiator",
+	// 			zap.String("UserID", e.Member.User.ID.String()),
+	// 			zap.String("GuildID", e.GuildID.String()),
+	// 			zap.Error(err),
+	// 		)
+	// 		return data, err
+	// 	}
+	// 	gArray = append(gArray, g...)
+	// }
 
 	for _, g := range gArray {
 		e := gladiatorToEmbed(g)
@@ -94,7 +129,7 @@ func GetGladiators(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Embeds: eArray,
+			Components: &[]discord.Component{selectMenu},
 		},
 	}
 
@@ -113,6 +148,8 @@ func FightGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 		a         = arena.NewClient(url)
 		data      api.InteractionResponse
 	)
+
+	a.GetGladiators(mID)
 
 	f, err := a.FightGladiator(mID, gID)
 	if err != nil {
@@ -133,7 +170,8 @@ func FightGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Content: msg,
+			Content:    option.NewNullableString(msg),
+			Components: &[]discord.Component{},
 		},
 	}
 
@@ -167,7 +205,7 @@ func FireGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
 		Data: &api.InteractionResponseData{
-			Content: msg,
+			Content: option.NewNullableString(msg),
 		},
 	}
 

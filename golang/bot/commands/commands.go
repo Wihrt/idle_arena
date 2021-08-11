@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"github.com/diamondburned/arikawa/v2/api"
-	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/arikawa/v2/gateway"
+	"github.com/diamondburned/arikawa/v3/api"
+	"github.com/diamondburned/arikawa/v3/discord"
+	"github.com/diamondburned/arikawa/v3/gateway"
 	"go.uber.org/zap"
 )
 
@@ -24,14 +24,6 @@ var RegisteredCommands = []api.CreateCommandData{
 	{
 		Name:        "show",
 		Description: "Show your gladiator(s)",
-		Options: []discord.CommandOption{
-			{
-				Type:        3,
-				Name:        "name",
-				Description: "Name of your gladiator",
-				Required:    false,
-			},
-		},
 	},
 	{
 		Name:        "fight",

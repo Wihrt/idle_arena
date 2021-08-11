@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"os"
+	"time"
 
-	"github.com/diamondburned/arikawa/v2/api"
-	"github.com/diamondburned/arikawa/v2/discord"
-	"github.com/diamondburned/arikawa/v2/gateway"
-	"github.com/diamondburned/arikawa/v2/session"
+	"github.com/diamondburned/arikawa/v3/api"
+	"github.com/diamondburned/arikawa/v3/discord"
+	"github.com/diamondburned/arikawa/v3/gateway"
+	"github.com/diamondburned/arikawa/v3/session"
 	"github.com/wihrt/idle_arena/bot/commands"
 	"github.com/wihrt/idle_arena/logging"
 	"go.uber.org/zap"
@@ -119,7 +121,10 @@ func main() {
 		}
 	})
 
-	err = bot.Session.Open()
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	err = bot.Session.Open(ctx)
 	if err != nil {
 		zap.L().Fatal("Failed to open session",
 			zap.Error(err),
