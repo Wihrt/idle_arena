@@ -34,6 +34,21 @@ services:
             - arenaFront
             - arenaBack
         restart: always
+    loader:
+        build:
+            context: .
+            args:
+                GOBINARY: arenaLoader
+                GOFILE: ./loader/loader.go
+        container_name: loader
+        environment:
+            MONGO_URL: mongodb://$MONGODB_USER:$MONGODB_PASSWORD@mongo:27017/$MONGODB_DATABASE?authSource=admin
+            DND_API: https://www.dnd5eapi.co
+            TIMEOUT: 30s
+            INDEXES: "armor,weapon"
+        entrypoint: ["/usr/bin/arenaLoader"]
+        networks:
+            - arenaBack
     mongo:
         image: mongo:latest
         container_name: mongo

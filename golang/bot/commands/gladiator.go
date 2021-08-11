@@ -20,7 +20,7 @@ func HireGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 		msg       string
 		mID       = generateManagerID(e)
 		url       = os.Getenv("ARENA_URL")
-		a         = arena.NewArenaClient(url)
+		a         = arena.NewClient(url)
 		data      api.InteractionResponse
 	)
 
@@ -57,7 +57,7 @@ func GetGladiators(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 		name   = fetchValue(e.Data.Options, "name")
 		gID    = generateGladiatorID(mID, name)
 		url    = os.Getenv("ARENA_URL")
-		a      = arena.NewArenaClient(url)
+		a      = arena.NewClient(url)
 		data   api.InteractionResponse
 	)
 
@@ -109,7 +109,7 @@ func FightGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 		name      = fetchValue(e.Data.Options, "name")
 		gID       = generateGladiatorID(mID, name)
 		url       = os.Getenv("ARENA_URL")
-		a         = arena.NewArenaClient(url)
+		a         = arena.NewClient(url)
 		data      api.InteractionResponse
 	)
 
@@ -148,7 +148,7 @@ func FireGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 		name      = fetchValue(e.Data.Options, "name")
 		gID       = generateGladiatorID(mID, name)
 		url       = os.Getenv("ARENA_URL")
-		a         = arena.NewArenaClient(url)
+		a         = arena.NewClient(url)
 		data      api.InteractionResponse
 	)
 	err := a.FireGladiator(mID, gID)

@@ -1,46 +1,87 @@
 package gladiator
 
-import "github.com/wihrt/idle_arena/dice"
+import (
+	"context"
+	"time"
 
-type WeaponType string
-
-const (
-	MeleeWeapon  WeaponType = "melee"
-	RangedWeapon WeaponType = "ranged"
+	"github.com/wihrt/idle_arena/dice"
+	"github.com/wihrt/idle_arena/dnd"
+	"github.com/wihrt/idle_arena/utils"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/zap"
 )
 
-type Weapon struct {
-	Name   string     `json:"name"`
-	Number int        `json:"number"`
-	Damage int        `json:"damage"`
-	Type   WeaponType `json:"type"`
-}
+func NewRandomWeapon(m *mongo.Client) (*dnd.Weapon, error) {
+	var (
+		w           dnd.Weapon
+		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
+	)
+	defer cancel()
 
-func NewWeapon(name string, number int, damage int, weaponType WeaponType) *Weapon {
-	var w = &Weapon{
-		Name:   name,
-		Number: number,
-		Damage: damage,
-		Type:   weaponType,
+	sampleStage := bson.D{{"$sample", bson.D{{"size", 1}}}}
+
+	cur, err := m.Database(utils.DB).Collection(utils.W).Aggregate(ctx, mongo.Pipeline{sampleStage})
+	if err != nil {
+		zap.L().Error("Cannot get weapon",
+			zap.String("database", utils.DB),
+			zap.String("collection", utils.W),
+			zap.Error(err),
+		)
+		return &w, err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		err = cur.Decode(&w)
+		if err != nil {
+			zap.L().Error("Cannot decode weapon",
+				zap.Error(err),
+			)
+			return &w, err
+		}
 	}
 
-	return w
+	return &w, nil
 }
 
-func NewRandomWeapon() *Weapon {
-	var weapon *Weapon
-	roll := dice.Roll(1, 4, -1)
+func (g *Gladiator) Attack() int {
+	var (
+		result   = dice.Roll(1, 20, -1)
+		modifier int
+	)
 
-	switch roll {
-	case 1:
-		weapon = NewWeapon("Shortsword", 1, 6, MeleeWeapon)
-	case 2:
-		weapon = NewWeapon("Longsword", 1, 8, MeleeWeapon)
-	case 3:
-		weapon = NewWeapon("Shortbow", 1, 6, RangedWeapon)
-	case 4:
-		weapon = NewWeapon("Longbow", 1, 8, RangedWeapon)
+	switch g.Weapon.WeaponRange {
+	case "Melee":
+		modifier = g.Strength.Modifier
+		if g.Weapon.HasFinesse() {
+			modifier = g.Dexterity.Modifier
+		}
+	case "Ranged":
+		modifier = g.Dexterity.Modifier
 	}
 
-	return weapon
+	result += modifier
+	return result
+}
+
+func (g *Gladiator) Damage() int {
+
+	var (
+		weaponDice = g.Weapon.ParseDice()
+		result     = dice.Roll(weaponDice[0], weaponDice[1], -1)
+		modifier   int
+	)
+
+	switch g.Weapon.WeaponRange {
+	case "Melee":
+		modifier = g.Strength.Modifier
+		if g.Weapon.HasFinesse() {
+			modifier = g.Dexterity.Modifier
+		}
+	case "Ranged":
+		modifier = g.Dexterity.Modifier
+	}
+
+	result += modifier
+	return result
 }

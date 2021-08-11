@@ -1,2 +1,7 @@
-image:
-  tag: latest
+backend:
+  image:
+    tag: latest
+
+loader:
+  image:
+    tag: latest

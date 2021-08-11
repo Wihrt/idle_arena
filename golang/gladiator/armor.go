@@ -1,80 +1,64 @@
 package gladiator
 
-import "github.com/wihrt/idle_arena/dice"
+import (
+	"context"
+	"time"
 
-type ArmorType string
-
-const (
-	NoArmor     ArmorType = "none"
-	LightArmor  ArmorType = "light"
-	MediumArmor ArmorType = "medium"
-	HeavyArmor  ArmorType = "heavy"
+	"github.com/wihrt/idle_arena/dnd"
+	"github.com/wihrt/idle_arena/utils"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/zap"
 )
 
-type Armor struct {
-	Name        string    `json:"name"`
-	Value       int       `json:"value"`
-	Type        ArmorType `json:"type"`
-	MaxDexBonus int       `json:"max_dex_bonus"`
-}
+func NewRandomArmor(m *mongo.Client) (*dnd.Armor, error) {
 
-func NewArmor(name string, value int, armorType ArmorType) *Armor {
-	var a = &Armor{
-		Name:        name,
-		Value:       value,
-		Type:        armorType,
-		MaxDexBonus: 0,
+	var (
+		a           dnd.Armor
+		ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
+	)
+	defer cancel()
+
+	sampleStage := bson.D{{"$sample", bson.D{{"size", 1}}}}
+	matchStage := bson.D{{"$match", bson.D{{"str_minimum", 0}}}}
+
+	cur, err := m.Database(utils.DB).Collection(utils.A).Aggregate(ctx, mongo.Pipeline{matchStage, sampleStage})
+	if err != nil {
+		zap.L().Error("Cannot get armor",
+			zap.String("database", utils.DB),
+			zap.String("collection", utils.A),
+			zap.Error(err),
+		)
+		return &a, err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		err = cur.Decode(&a)
+		if err != nil {
+			zap.L().Error("Cannot decode armor",
+				zap.Error(err),
+			)
+			return &a, err
+		}
 	}
 
-	a.calculateMaxBonus()
-	return a
-}
-
-func NewRandomArmor() *Armor {
-	var armor *Armor
-	roll := dice.Roll(1, 4, -1)
-
-	switch roll {
-	case 1:
-		armor = NewArmor("Slip", 0, NoArmor)
-	case 2:
-		armor = NewArmor("Leather Armor", 11, LightArmor)
-	case 3:
-		armor = NewArmor("Chain Shirt", 14, MediumArmor)
-	case 4:
-		armor = NewArmor("Chain Mail", 16, HeavyArmor)
-	}
-
-	return armor
-}
-
-func (a *Armor) calculateMaxBonus() {
-	switch a.Type {
-	case LightArmor:
-		a.MaxDexBonus = -1
-	case MediumArmor:
-		a.MaxDexBonus = 2
-	case HeavyArmor:
-		a.MaxDexBonus = 0
-	}
+	return &a, nil
 }
 
 func calculateArmorClass(g *Gladiator) int {
-	var armorClass int
+	var (
+		armorClass = g.Armor.ArmorClass.Base
+		dexBonus   = g.Dexterity.Modifier
+	)
 
-	switch g.Armor.Type {
-	case NoArmor:
-		armorClass = 10 + g.Dexterity.Modifier
-	case LightArmor:
-		armorClass = g.Armor.Value + g.Dexterity.Modifier
-	case MediumArmor:
-		dexBonus := g.Dexterity.Modifier
-		if dexBonus > g.Armor.MaxDexBonus {
-			dexBonus = g.Armor.MaxDexBonus
+	if g.Armor.ArmorClass.DexBonus {
+		if g.Armor.ArmorClass.MaxBonus != 0 {
+			if dexBonus > g.Armor.ArmorClass.MaxBonus {
+				armorClass += g.Armor.ArmorClass.MaxBonus
+			} else {
+				armorClass += dexBonus
+			}
 		}
-		armorClass = g.Armor.Value + dexBonus
-	case HeavyArmor:
-		armorClass = g.Armor.Value
 	}
 
 	return armorClass

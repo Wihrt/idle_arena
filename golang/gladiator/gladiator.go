@@ -5,13 +5,15 @@ import (
 	"encoding/hex"
 
 	"github.com/wihrt/idle_arena/dice"
+	"github.com/wihrt/idle_arena/dnd"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
 type Gladiator struct {
 	ManagerID             string         `json:"manager_id" bson:"manager_id"`
 	GladiatorID           string         `json:"gladiator_id" bson:"gladiator_id"`
-	Armor                 *Armor         `json:"armor" bson:"armor"`
+	Armor                 *dnd.Armor     `json:"armor" bson:"armor"`
 	ArmorClass            int            `json:"armor_class" bson:"armor_class"`
 	Constitution          *Caracteristic `json:"constitution" bson:"constitution"`
 	CurrentHealth         int            `json:"current_health" bson:"current_health"`
@@ -22,10 +24,10 @@ type Gladiator struct {
 	MaxHealth             int            `json:"max_health" bson:"max_health"`
 	Name                  string         `json:"name" bson:"name"`
 	Strength              *Caracteristic `json:"strength" bson:"strength"`
-	Weapon                *Weapon        `json:"weapon" bson:"weapon"`
+	Weapon                *dnd.Weapon    `json:"weapon" bson:"weapon"`
 }
 
-func NewGladiator(level int, managerID string) (*Gladiator, error) {
+func NewGladiator(level int, managerID string, mongoClient *mongo.Client) (*Gladiator, error) {
 	g := &Gladiator{
 		Experience:            0,
 		ExperienceToNextLevel: calculateNextLevel(1),
@@ -49,8 +51,20 @@ func NewGladiator(level int, managerID string) (*Gladiator, error) {
 	g.CurrentHealth = 12 + g.Constitution.Modifier
 	g.MaxHealth = 12 + g.Constitution.Modifier
 
-	g.Weapon = NewRandomWeapon()
-	g.Armor = NewRandomArmor()
+	g.Weapon, err = NewRandomWeapon(mongoClient)
+	if err != nil {
+		zap.L().Error("Error when generating new weapon",
+			zap.Error(err),
+		)
+		return g, err
+	}
+	g.Armor, err = NewRandomArmor(mongoClient)
+	if err != nil {
+		zap.L().Error("Error when generating new armor",
+			zap.Error(err),
+		)
+		return g, err
+	}
 
 	g.ArmorClass = calculateArmorClass(g)
 
@@ -61,64 +75,9 @@ func NewGladiator(level int, managerID string) (*Gladiator, error) {
 		g.Experience = 0
 	}
 
-	g.generateID()
+	g.GladiatorID = GenerateID(managerID, name)
 
 	return g, nil
-}
-
-func (g *Gladiator) generateID() {
-	g.GladiatorID = GenerateID(g.ManagerID, g.Name)
-}
-
-func (g *Gladiator) LevelUp() {
-
-	var HpBonus = dice.Roll(1, 12, -1)
-	g.MaxHealth += HpBonus + g.Constitution.Modifier
-	g.CurrentHealth = g.MaxHealth
-
-	if (g.Level % 2) == 0 {
-		stat := dice.Roll(1, 3, -1)
-		switch stat {
-		case 1:
-			g.Strength.Add(1)
-		case 2:
-			g.Dexterity.Add(1)
-			g.ArmorClass = calculateArmorClass(g)
-		case 3:
-			g.Constitution.Add(1)
-		}
-	}
-
-	g.Level += 1
-	remainingExp := g.Experience - g.ExperienceToNextLevel
-	g.ExperienceToNextLevel = calculateNextLevel(g.Level)
-	g.Experience = remainingExp
-}
-
-func (g *Gladiator) Attack() int {
-	var result = dice.Roll(1, 20, -1)
-
-	switch g.Weapon.Type {
-	case MeleeWeapon:
-		result += g.Strength.Modifier
-	case RangedWeapon:
-		result += g.Dexterity.Modifier
-	}
-
-	return result
-}
-
-func (g *Gladiator) Damage() int {
-	var result = dice.Roll(g.Weapon.Number, g.Weapon.Damage, -1)
-
-	switch g.Weapon.Type {
-	case MeleeWeapon:
-		result += g.Strength.Modifier
-	case RangedWeapon:
-		result += g.Dexterity.Modifier
-	}
-
-	return result
 }
 
 func GenerateID(managerID string, name string) string {

@@ -4,27 +4,27 @@
 
 replicaCount: 1
 
-image:
-  repository: megalooo/arena_backend
-  pullPolicy: Always
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
 
-nameOverride: ""
-fullnameOverride: ""
+backend:
+  image:
+    repository: megalooo/arena_backend
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+  
+  http:
+    port: 5000
 
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
-http:
-  port: 5000
-
+loader:
+  image:
+    repository: megalooo/arena_backend
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+  env:
+    dndApi: https://www.dnd5eapi.co
+    timeout: 30s
+    indexes: armor,weapon
 
 env:
   mongo:
@@ -32,14 +32,16 @@ env:
     port: ""
     uri: ""
 
-podAnnotations: {}
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
 
 service:
   type: ClusterIP
   port: 80
 
 resources: {}
-
-mongo:
-  auth:
-    rootPassword:

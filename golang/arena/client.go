@@ -9,28 +9,29 @@ import (
 	"github.com/wihrt/idle_arena/fight"
 	"github.com/wihrt/idle_arena/gladiator"
 	"github.com/wihrt/idle_arena/manager"
+	"github.com/wihrt/idle_arena/utils"
 	"go.uber.org/zap"
 )
 
 var ErrWrongStatusCode = errors.New("wrong status code")
 
-type ArenaClient struct {
+type Client struct {
 	URL string
 }
 
-func NewArenaClient(url string) *ArenaClient {
-	a := &ArenaClient{
+func NewClient(url string) *Client {
+	a := &Client{
 		URL: url,
 	}
 
 	return a
 }
 
-func (a *ArenaClient) RegisterManager(mID string) (*manager.Manager, error) {
+func (c *Client) RegisterManager(mID string) (*manager.Manager, error) {
 
 	var (
 		m       = manager.NewManager(mID)
-		url     = []string{a.URL, APIBase, "managers"}
+		url     = []string{c.URL, utils.APIBase, "managers"}
 		fullURL = strings.Join(url, "/")
 	)
 
@@ -61,10 +62,10 @@ func (a *ArenaClient) RegisterManager(mID string) (*manager.Manager, error) {
 	return m, nil
 }
 
-func (a *ArenaClient) RetireManager(mID string) error {
+func (c *Client) RetireManager(mID string) error {
 
 	var (
-		url     = []string{a.URL, APIBase, "managers", mID}
+		url     = []string{c.URL, utils.APIBase, "managers", mID}
 		fullURL = strings.Join(url, "/")
 	)
 
@@ -94,11 +95,11 @@ func (a *ArenaClient) RetireManager(mID string) error {
 	return nil
 }
 
-func (a *ArenaClient) HireGladiator(mID string) (gladiator.Gladiator, error) {
+func (c *Client) HireGladiator(mID string) (gladiator.Gladiator, error) {
 
 	var (
 		g       gladiator.Gladiator
-		url     = []string{a.URL, APIBase, "managers", mID, "gladiators"}
+		url     = []string{c.URL, utils.APIBase, "managers", mID, "gladiators"}
 		fullURL = strings.Join(url, "/")
 	)
 
@@ -145,10 +146,10 @@ func (a *ArenaClient) HireGladiator(mID string) (gladiator.Gladiator, error) {
 
 }
 
-func (a *ArenaClient) GetGladiators(mID string) ([]gladiator.Gladiator, error) {
+func (c *Client) GetGladiators(mID string) ([]gladiator.Gladiator, error) {
 	var (
 		g       []gladiator.Gladiator
-		url     = []string{a.URL, APIBase, "managers", mID, "gladiators"}
+		url     = []string{c.URL, utils.APIBase, "managers", mID, "gladiators"}
 		fullURL = strings.Join(url, "/")
 	)
 
@@ -191,11 +192,11 @@ func (a *ArenaClient) GetGladiators(mID string) ([]gladiator.Gladiator, error) {
 
 }
 
-func (a *ArenaClient) GetGladiator(mID string, gID string) (gladiator.Gladiator, error) {
+func (c *Client) GetGladiator(mID string, gID string) (gladiator.Gladiator, error) {
 
 	var (
 		g       gladiator.Gladiator
-		url     = []string{a.URL, APIBase, "managers", mID, "gladiators", gID}
+		url     = []string{c.URL, utils.APIBase, "managers", mID, "gladiators", gID}
 		fullURL = strings.Join(url, "/")
 	)
 
@@ -241,11 +242,11 @@ func (a *ArenaClient) GetGladiator(mID string, gID string) (gladiator.Gladiator,
 	return g, nil
 }
 
-func (a *ArenaClient) FightGladiator(mID string, gID string) (fight.FightResult, error) {
+func (c *Client) FightGladiator(mID string, gID string) (fight.FightResult, error) {
 
 	var (
 		f       fight.FightResult
-		url     = []string{a.URL, APIBase, "managers", mID, "gladiators", gID, "fight"}
+		url     = []string{c.URL, utils.APIBase, "managers", mID, "gladiators", gID, "fight"}
 		fullURL = strings.Join(url, "/")
 	)
 
@@ -291,10 +292,10 @@ func (a *ArenaClient) FightGladiator(mID string, gID string) (fight.FightResult,
 	return f, nil
 }
 
-func (a *ArenaClient) FireGladiator(mID string, gID string) error {
+func (c *Client) FireGladiator(mID string, gID string) error {
 
 	var (
-		url     = []string{a.URL, APIBase, "managers", mID, "gladiators", gID}
+		url     = []string{c.URL, utils.APIBase, "managers", mID, "gladiators", gID}
 		fullURL = strings.Join(url, "/")
 	)
 
