@@ -1,6 +1,4 @@
 repositories:
-  - name: stable
-    url: https://charts.helm.sh/stable
   - name: bitnami
     url: https://charts.bitnami.com/bitnami
 
@@ -38,16 +36,16 @@ environments:
 
 
 releases:
-- name: bot
-  <<: *release
-  needs:
-    - backend
-- name: backend
-  <<: *release
-  needs:
-    - mongo
-- name: mongo
-  <<: *release
-  chart: bitnami/mongodb
+  - name: bot
+    <<: *release
+    needs:
+      - backend
+  - name: backend
+    <<: *release
+    needs:
+      - mongo
+  - name: mongo
+    <<: *release
+    chart: bitnami/mongodb
 
 

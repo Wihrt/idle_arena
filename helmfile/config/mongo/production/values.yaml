@@ -1,2 +1,6 @@
 persistence:
-  enabled: false
+  enabled: true
+  storageClass: local-path
+  accessModes:
+    - ReadWriteOnce
+  size: 2Gi

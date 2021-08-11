@@ -89,7 +89,6 @@ func main() {
 
 	appID := discord.AppID(mustSnowflakeEnv("APP_ID"))
 	guildID := discord.GuildID(mustSnowflakeEnv("GUILD_ID"))
-
 	token := os.Getenv("BOT_TOKEN")
 	if token == "" {
 		zap.L().Fatal("No $BOT_TOKEN given")
@@ -128,7 +127,12 @@ func main() {
 	}
 	defer bot.Session.Close()
 
-	bot.GetGuildCommands()
+	err = bot.GetGuildCommands()
+	if err != nil {
+		zap.L().Fatal("Failed to get guild commands",
+			zap.Error(err),
+		)
+	}
 	bot.RegisterCommands(commands.RegisteredCommands)
 
 	// Block forever.

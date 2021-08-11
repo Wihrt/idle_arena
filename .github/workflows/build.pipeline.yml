@@ -1,15 +1,40 @@
-name: "Build Docker images"
+name: "Build and Deploy application"
 
 on: ["push", "pull_request"]
 
 env:
   DOCKER_USER: megalooo
+  ANSIBLE_VERSION: "4.3.0"
+  GOSEC_VERSION: "2.8.1"
 
 jobs:
+  golang-security:
+    name: "Check Golang security code"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Download gosec
+        working-directory: golang
+        run: |-
+          curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $PWD v${{ env.GOSEC_VERSION }}
+          chmod u+x gosec
+      - name: Run Gosec Security Scanner
+        working-directory: golang
+        run: |-
+          ./gosec -no-fail -fmt json -out gosec.result.json ./...
+      - name: Upload gosec.result.json file
+        uses: actions/upload-artifact@v2
+        with:
+          name: gosec
+          path: golang/gosec.result.json
+          retention-days: 7
 
   docker-bot:
     name: "Build and Push Docker bot image"
     runs-on: ubuntu-latest
+    needs:
+      - golang-security
     env:
       IMAGE: arena_bot
       CONTEXT: ./golang
@@ -38,6 +63,8 @@ jobs:
   docker-backend:
     name: "Build and Push Docker backend image"
     runs-on: ubuntu-latest
+    needs:
+      - golang-security
     env:
         IMAGE: arena_backend
         CONTEXT: ./golang
@@ -62,3 +89,97 @@ jobs:
         run: |-
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
+  
+  docker-ansible:
+    name: "Pull or build Ansible docker image"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Docker login
+      run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build Ansible Docker image
+      working-directory: ansible
+      run: |-
+        docker pull ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} || 
+        (docker build --build-arg ANSIBLE_VERSION=${{ env.ANSIBLE_VERSION }} -t ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} . && 
+        docker push ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }})
+  
+  ansible:
+    name: "Prepare environment"
+    runs-on: ubuntu-latest
+    needs:
+      - docker-ansible
+    container:
+      image: megalooo/ansible:4.3.0
+    env:
+      PRIVATE_KEY: "vps_private_key"
+      TARGET_HOST: ${{ secrets.TARGET_HOST }}
+      TARGET_USER: ${{ secrets.TARGET_USER }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Decrypt private key
+      working-directory: ansible
+      run: |-
+        echo "${{ secrets.SSH_KEY }}" > $PRIVATE_KEY
+        chmod 0600 $PRIVATE_KEY
+    - name: Install prerequistes on server
+      working-directory: ansible
+      run: |- 
+        ansible-playbook -e "target=$TARGET_HOST" -e "target_user=$TARGET_USER" -e "private_key=$PRIVATE_KEY" -t remote,k3s,kubectl,helm,kubeconfig playbook.yml
+    - name: Upload kubeconfig file
+      uses: actions/upload-artifact@v2
+      with:
+        name: kubeconfig
+        path: ansible/kubeconfig
+        retention-days: 0
+  
+  helmfile:
+    name: "Deploy application"
+    needs:
+      - ansible
+      - docker-bot
+      - docker-backend
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/roboll/helmfile:helm3-v0.140.0
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Download kubeconfig file
+      uses: actions/download-artifact@v2
+      with:
+        name: kubeconfig
+    - name: Change right on kubeconfig
+      run: chmod 0600 kubeconfig
+    - name: Install GPG and inject GPG private key
+      env:
+        PRIVATE_KEY: private.key
+      run: |-
+        apk add --no-cache --update gnupg
+        echo "${{ secrets.PGP_KEY }}" > $PRIVATE_KEY
+        gpg --import $PRIVATE_KEY
+        rm -f $PRIVATE_KEY
+    - name: Install Helm plugins
+      run: |-
+        helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.2
+        helm plugin install https://github.com/databus23/helm-diff
+    - name: Run Helmfile - Develop
+      working-directory: helmfile
+      if: github.ref != 'refs/heads/main'
+      env:
+        KUBECONFIG: ../kubeconfig
+        ENVIRONMENT: develop
+      run: |-
+        helmfile -e $ENVIRONMENT destroy
+        helmfile -e $ENVIRONMENT sync 
+    - name: Run Helmfile - Production
+      working-directory: helmfile
+      if: github.ref == 'refs/heads/main'
+      env:
+        KUBECONFIG: ../kubeconfig
+        ENVIRONMENT: production
+      run: |-
+        helmfile -e $ENVIRONMENT sync
+

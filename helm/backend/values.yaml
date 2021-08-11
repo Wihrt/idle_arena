@@ -22,8 +22,11 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
+http:
+  port: 5000
+
+
 env:
-  httpPort: 5000
   mongo:
     host: ""
     port: ""

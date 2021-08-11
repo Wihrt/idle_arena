@@ -13,6 +13,7 @@
     apt:
       name: '{{ package }}'
       state: present
+      update_cache: yes
     loop:
       - apt-transport-https
     loop_control:
@@ -27,13 +28,10 @@
     apt:
       name: '{{ package_helm }}'
       state: present
+      update_cache: yes
     loop:
       - helm
     loop_control:
       loop_var: package_helm
-    tags: helm
-  
-  - name: Set alias for Helm
-    command: "alias helm='helm --kubeconfig /etc/rancher/k3s/k3s.yaml'"
     tags: helm
   when: helm_installed.rc != 0
