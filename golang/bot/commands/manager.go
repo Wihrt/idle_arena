@@ -15,7 +15,7 @@ func RegisterManager(e *gateway.InteractionCreateEvent) (api.InteractionResponse
 	var (
 		mID  = generateManagerID(e)
 		url  = os.Getenv("ARENA_URL")
-		a    = arena.NewArenaClient(url)
+		a    = arena.NewClient(url)
 		data api.InteractionResponse
 	)
 
@@ -43,7 +43,7 @@ func RetireManager(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 	var (
 		mID  = generateManagerID(e)
 		url  = os.Getenv("ARENA_URL")
-		a    = arena.NewArenaClient(url)
+		a    = arena.NewClient(url)
 		data api.InteractionResponse
 	)
 

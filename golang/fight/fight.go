@@ -3,6 +3,7 @@ package fight
 import (
 	"github.com/wihrt/idle_arena/dice"
 	"github.com/wihrt/idle_arena/gladiator"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -11,12 +12,12 @@ type FightResult struct {
 	Gladiator *gladiator.Gladiator `json:"gladiator"`
 }
 
-func ResolveFight(g *gladiator.Gladiator) (*FightResult, error) {
+func ResolveFight(g *gladiator.Gladiator, m *mongo.Client) (*FightResult, error) {
 	var fightResult = &FightResult{
 		FightWon:  false,
 		Gladiator: g}
 
-	fightWon, err := Fight(g)
+	fightWon, err := Fight(g, m)
 	if err != nil {
 		zap.L().Error("Error when generating fight",
 			zap.Error(err),
@@ -38,8 +39,8 @@ func ResolveFight(g *gladiator.Gladiator) (*FightResult, error) {
 	return fightResult, nil
 }
 
-func Fight(player *gladiator.Gladiator) (bool, error) {
-	enemy, err := gladiator.NewGladiator(player.Level, "")
+func Fight(player *gladiator.Gladiator, m *mongo.Client) (bool, error) {
+	enemy, err := gladiator.NewGladiator(player.Level, "", m)
 	if err != nil {
 		zap.L().Error("Error when creating enemy",
 			zap.Error(err),
