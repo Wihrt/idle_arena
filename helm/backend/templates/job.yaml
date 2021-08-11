@@ -4,9 +4,6 @@ metadata:
   name: "{{ include "backend.fullname" . }}-loader"
   labels:
     {{- include "backend.labels" . | nindent 4 }}
-  annotations:
-    helm.sh/hook: pre-install
-    helm.sh/hook-delete-policy: hook-succeeded
 spec:
   template:
     metadata:

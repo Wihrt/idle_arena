@@ -205,6 +205,7 @@ jobs:
         ENVIRONMENT: develop
       run: |-
         helmfile -e $ENVIRONMENT destroy
+        kubectl delete ns arena-$ENVIRONMENT
         helmfile -e $ENVIRONMENT sync 
     - name: Run Helmfile - Production
       working-directory: helmfile
