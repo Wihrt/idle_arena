@@ -17,7 +17,7 @@ backend:
 
 loader:
   image:
-    repository: megalooo/arena_backend
+    repository: megalooo/arena_loader
     pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
     tag: ""

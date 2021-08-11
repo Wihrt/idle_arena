@@ -7,15 +7,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var toto = discord.CommandOption{
-	Type:        0,
-	Name:        "name",
-	Description: "",
-	Required:    false,
-	Choices:     []discord.CommandOptionChoice{},
-	Options:     []discord.CommandOption{},
-}
-
 var RegisteredCommands = []api.CreateCommandData{
 	{
 		Name:        "register",
@@ -99,21 +90,4 @@ func HandleInteraction(e *gateway.InteractionCreateEvent) (api.InteractionRespon
 	}
 
 	return data, nil
-}
-
-func fetchValue(options []gateway.InteractionOption, optionName string) string {
-	var value string
-
-	for _, o := range options {
-		if o.Name == optionName {
-			value = o.Value
-		}
-	}
-
-	zap.L().Debug("Result of fetch value",
-		zap.String("name", optionName),
-		zap.String("value", value),
-	)
-
-	return value
 }

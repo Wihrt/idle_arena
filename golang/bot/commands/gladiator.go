@@ -10,6 +10,7 @@ import (
 	"github.com/diamondburned/arikawa/v2/gateway"
 	"github.com/wihrt/idle_arena/arena"
 	"github.com/wihrt/idle_arena/gladiator"
+	"github.com/wihrt/idle_arena/utils"
 	"go.uber.org/zap"
 )
 
@@ -54,7 +55,7 @@ func GetGladiators(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 		gArray []gladiator.Gladiator
 		eArray []discord.Embed
 		mID    = generateManagerID(e)
-		name   = fetchValue(e.Data.Options, "name")
+		name   = utils.FetchValue(e.Data.Options, "name")
 		gID    = generateGladiatorID(mID, name)
 		url    = os.Getenv("ARENA_URL")
 		a      = arena.NewClient(url)
@@ -106,7 +107,7 @@ func FightGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 		formatMsg = "Your gladiator %s has %s the fight !"
 		msg       string
 		mID       = generateManagerID(e)
-		name      = fetchValue(e.Data.Options, "name")
+		name      = utils.FetchValue(e.Data.Options, "name")
 		gID       = generateGladiatorID(mID, name)
 		url       = os.Getenv("ARENA_URL")
 		a         = arena.NewClient(url)
@@ -145,7 +146,7 @@ func FireGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 		formatMsg = "You have fired %s !"
 		msg       string
 		mID       = generateManagerID(e)
-		name      = fetchValue(e.Data.Options, "name")
+		name      = utils.FetchValue(e.Data.Options, "name")
 		gID       = generateGladiatorID(mID, name)
 		url       = os.Getenv("ARENA_URL")
 		a         = arena.NewClient(url)

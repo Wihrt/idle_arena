@@ -1,6 +1,11 @@
 package utils
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/diamondburned/arikawa/v2/gateway"
+	"go.uber.org/zap"
+)
 
 func StringInSlice(a string, list []string) bool {
 	for _, b := range list {
@@ -18,4 +23,21 @@ func StringContains(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+func FetchValue(options []gateway.InteractionOption, optionName string) string {
+	var value string
+
+	for _, o := range options {
+		if o.Name == optionName {
+			value = o.Value
+		}
+	}
+
+	zap.L().Debug("Result of fetch value",
+		zap.String("name", optionName),
+		zap.String("value", value),
+	)
+
+	return value
 }
