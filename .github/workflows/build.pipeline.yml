@@ -48,8 +48,8 @@ jobs:
       - name: Download hadolint
         working-directory: golang
         run: |-
-          curl https://github.com/hadolint/hadolint/releases/download/v${{ env.HADOLINT_VERSION}}/hadolint-Linux-x86_64 -o hadolint
-          chmod u+x hadolint
+          curl -sfL https://github.com/hadolint/hadolint/releases/download/v${{ env.HADOLINT_VERSION }}/hadolint-Linux-x86_64 -o hadolint
+          chmod u+x ./hadolint
       - name: Run Hadolint
         working-directory: golang
         run: |-
@@ -101,6 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - golang-security
+      - docker-lint
     env:
         IMAGE: arena_backend
         CONTEXT: ./golang
@@ -134,6 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - golang-security
+      - docker-lint
     env:
         IMAGE: arena_loader
         CONTEXT: ./golang
