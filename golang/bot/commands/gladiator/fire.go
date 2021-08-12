@@ -56,7 +56,16 @@ func FireGladiators(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 
 	for _, v := range e.Data.Values {
 		gID := utils.GenerateGladiatorID(mID, v)
-		a.FireGladiator(mID, gID)
+		err := a.FireGladiator(mID, gID)
+		if err != nil {
+			zap.L().Error("Cannot fire gladiator",
+				zap.String("managerID", mID),
+				zap.String("gladiatorID", gID),
+				zap.String("gladiatorName", v),
+				zap.Error(err),
+			)
+			return data, err
+		}
 	}
 
 	msgFormatted := fmt.Sprintf(msg, strings.Join(e.Data.Values, ", "))

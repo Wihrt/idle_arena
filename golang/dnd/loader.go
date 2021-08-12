@@ -149,7 +149,7 @@ func (l *Loader) LoadWeapon(e CategoryItem) error {
 		return errors.New("not a valid dimension")
 	}
 
-	l.Mongo.Database(utils.DB).Collection(utils.W).InsertOne(ctx, *w)
+	_, err = l.Mongo.Database(utils.DB).Collection(utils.W).InsertOne(ctx, *w)
 	if err != nil {
 		zap.L().Error("Cannot create manager in MongoDB",
 			zap.String("index", w.Index),
