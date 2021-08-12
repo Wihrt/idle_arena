@@ -97,9 +97,10 @@ jobs:
             "GOBINARY=${{ env.GOBINARY }}"
             "GOFILE=${{ env.GOFILE }}"
 
-      - name: Docker scan
-        run: |-
-          docker scan --accept-license ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+      - name: Scan image
+        uses: anchore/scan-action@v2.0.4
+        with:
+          image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
       - name: Docker push latest
         if: github.ref == 'refs/heads/develop'
         uses: docker/build-push-action@v2.6.1
