@@ -92,7 +92,6 @@ jobs:
         with:
           context: ${{ env.CONTEXT }}
           load: true
-          push: true
           tags: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
           build-args: |-
             "GOBINARY=${{ env.GOBINARY }}"
@@ -103,14 +102,26 @@ jobs:
           docker scan --accept-license ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
       - name: Docker push latest
         if: github.ref == 'refs/heads/develop'
-        run: |-
-          docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
-          docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
+        uses: docker/build-push-action@v2.6.1
+        with:
+          context: ${{ env.CONTEXT }}
+          push: true
+          tags: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
+          build-args: |-
+            "GOBINARY=${{ env.GOBINARY }}"
+            "GOFILE=${{ env.GOFILE }}"
+
       - name: Docker push main
         if: github.ref == 'refs/heads/main'
-        run: |-
-          docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
-          docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
+        uses: docker/build-push-action@v2.6.1
+        with:
+          context: ${{ env.CONTEXT }}
+          push: true
+          tags: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
+          build-args: |-
+            "GOBINARY=${{ env.GOBINARY }}"
+            "GOFILE=${{ env.GOFILE }}"
+
       
   docker-bot:
     name: "Build and Push Docker bot image"
