@@ -177,6 +177,7 @@ jobs:
       - docker-backend
       - docker-loader
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
     container:
       image: quay.io/roboll/helmfile:helm3-v0.140.0
     steps:
