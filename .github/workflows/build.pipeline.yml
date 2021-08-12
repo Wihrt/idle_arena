@@ -86,7 +86,7 @@ jobs:
         with:
           username: ${{ env.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          logouyt: true
+          logout: true
       - name: Docker build
         run: |-
           docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
