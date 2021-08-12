@@ -51,7 +51,7 @@ func (w *Weapon) HasFinesse() bool {
 	return false
 }
 
-func (w *Weapon) ParseDice() []int {
+func (w *Weapon) ParseDice() ([]int, error) {
 
 	var (
 		parsedDice = strings.Split(w.Damage.DamageDice, "d")
@@ -65,8 +65,9 @@ func (w *Weapon) ParseDice() []int {
 				zap.String("value", v),
 				zap.Error(err),
 			)
+			return results, err
 		}
 		results = append(results, i)
 	}
-	return results
+	return results, nil
 }

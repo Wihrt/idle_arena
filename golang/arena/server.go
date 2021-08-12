@@ -359,6 +359,7 @@ func (s *Server) FightGladiator(w http.ResponseWriter, r *http.Request) {
 		splittedURL = strings.Split(r.RequestURI, "/")
 		managerID   = splittedURL[len(splittedURL)-4]
 		gladiatorID = splittedURL[len(splittedURL)-2]
+		settings    fight.Settings
 	)
 
 	_, err := s.getManager(managerID)
@@ -399,7 +400,25 @@ func (s *Server) FightGladiator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fightResult, err := fight.ResolveFight(g, &s.Mongo)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		zap.L().Error("Cannot read body",
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	err = json.Unmarshal(body, &settings)
+	if err != nil {
+		zap.L().Error("Cannot unmarshal body",
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	fightResult, err := fight.ResolveFight(g, &s.Mongo, &settings)
 	if err != nil {
 		zap.L().Error("Cannot fight gladiator",
 			zap.String("managerID", managerID),

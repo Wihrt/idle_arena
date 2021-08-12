@@ -2,6 +2,7 @@ package dnd
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -9,12 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
-)
-
-const (
-	DB = "arena"
-	A  = "armor"
-	W  = "weapon"
 )
 
 type Loader struct {
@@ -114,7 +109,11 @@ func (l *Loader) LoadArmor(e CategoryItem) error {
 		return err
 	}
 
-	_, err = l.Mongo.Database(DB).Collection(A).InsertOne(ctx, *a)
+	if a.ArmorClass.Base < 10 {
+		return errors.New("base armor too low")
+	}
+
+	_, err = l.Mongo.Database(utils.DB).Collection(utils.A).InsertOne(ctx, *a)
 	if err != nil {
 		zap.L().Error("Cannot create armor in MongoDB",
 			zap.String("index", a.Index),
@@ -141,7 +140,16 @@ func (l *Loader) LoadWeapon(e CategoryItem) error {
 		return err
 	}
 
-	l.Mongo.Database(DB).Collection(W).InsertOne(ctx, *w)
+	result, err := w.ParseDice()
+	if err != nil {
+		return err
+	}
+
+	if result[1] == 1 {
+		return errors.New("not a valid dimension")
+	}
+
+	l.Mongo.Database(utils.DB).Collection(utils.W).InsertOne(ctx, *w)
 	if err != nil {
 		zap.L().Error("Cannot create manager in MongoDB",
 			zap.String("index", w.Index),

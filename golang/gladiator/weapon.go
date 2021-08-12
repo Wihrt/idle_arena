@@ -66,11 +66,10 @@ func (g *Gladiator) Attack() int {
 
 func (g *Gladiator) Damage() int {
 
-	var (
-		weaponDice = g.Weapon.ParseDice()
-		result     = dice.Roll(weaponDice[0], weaponDice[1], -1)
-		modifier   int
-	)
+	var modifier int
+
+	weaponDice, _ := g.Weapon.ParseDice()
+	result := dice.Roll(weaponDice[0], weaponDice[1], -1)
 
 	switch g.Weapon.WeaponRange {
 	case "Melee":

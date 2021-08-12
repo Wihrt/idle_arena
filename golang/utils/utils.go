@@ -3,7 +3,7 @@ package utils
 import (
 	"strings"
 
-	"github.com/diamondburned/arikawa/v2/gateway"
+	"github.com/diamondburned/arikawa/v3/gateway"
 	"go.uber.org/zap"
 )
 
@@ -30,7 +30,7 @@ func FetchValue(options []gateway.InteractionOption, optionName string) string {
 
 	for _, o := range options {
 		if o.Name == optionName {
-			value = o.Value
+			value = o.Value.String()
 		}
 	}
 

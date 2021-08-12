@@ -242,10 +242,10 @@ func (c *Client) GetGladiator(mID string, gID string) (gladiator.Gladiator, erro
 	return g, nil
 }
 
-func (c *Client) FightGladiator(mID string, gID string) (fight.FightResult, error) {
+func (c *Client) FightGladiator(mID string, gID string, s *fight.Settings) (fight.Result, error) {
 
 	var (
-		f       fight.FightResult
+		f       fight.Result
 		url     = []string{c.URL, utils.APIBase, "managers", mID, "gladiators", gID, "fight"}
 		fullURL = strings.Join(url, "/")
 	)
@@ -257,6 +257,7 @@ func (c *Client) FightGladiator(mID string, gID string) (fight.FightResult, erro
 	)
 
 	res, err := grequests.Post(fullURL, &grequests.RequestOptions{
+		JSON:           s,
 		RequestTimeout: 5 * time.Second,
 	})
 

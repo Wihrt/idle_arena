@@ -1,6 +1,10 @@
 name: "Build and Deploy application"
 
-on: ["push", "pull_request"]
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
 
 env:
   DOCKER_USER: megalooo
@@ -50,7 +54,7 @@ jobs:
           docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
       - name: Tag Docker image to latest
-        if: github.ref != 'refs/heads/main'
+        if: github.ref == 'refs/heads/develop'
         run: |-
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
@@ -78,9 +82,8 @@ jobs:
       - name: Build the Docker image
         run: |-
           docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
-          docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
       - name: Tag Docker image to latest
-        if: github.ref != 'refs/heads/main'
+        if: github.ref == 'refs/heads/develop'
         run: |-
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
@@ -110,7 +113,7 @@ jobs:
           docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
       - name: Tag Docker image to latest
-        if: github.ref != 'refs/heads/main'
+        if: github.ref == 'refs/heads/develop'
         run: |-
           docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
           docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
@@ -199,7 +202,7 @@ jobs:
         helm plugin install https://github.com/databus23/helm-diff
     - name: Run Helmfile - Develop
       working-directory: helmfile
-      if: github.ref != 'refs/heads/main'
+      if: github.ref == 'refs/heads/develop'
       env:
         KUBECONFIG: ../kubeconfig
         ENVIRONMENT: develop

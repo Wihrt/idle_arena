@@ -12,7 +12,7 @@ var onlyOnce sync.Once
 func Roll(number int, dice int, keep_highest int) int {
 
 	var (
-		seq     = MakeRange(1, number)
+		seq     = make([]int, number)
 		results []int
 		result  int
 	)
