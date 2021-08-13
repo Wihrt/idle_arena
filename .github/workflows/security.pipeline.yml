@@ -1,6 +1,6 @@
 name: "Check security"
 
-on: ["push", "pull_request"]
+on: ["pull_request"]
 
 env:
   DOCKER_USER: megalooo
