@@ -19,6 +19,8 @@ jobs:
         uses: snyk/actions/golang@0.3.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          sarif: true
       - name: Upload synk.json file
         uses: github/codeql-action/upload-sarif@v1
         with:
@@ -31,19 +33,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: Download gosec
-        working-directory: golang
         run: |-
           curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $PWD v${{ env.GOSEC_VERSION }}
           chmod u+x gosec
       - name: Run Gosec Security Scanner
-        working-directory: golang
         run: |-
           ./gosec -exclude G404 -fmt json -out gosec.result.json ./...
       - name: Upload gosec.result.json file
         uses: actions/upload-artifact@v2
         with:
           name: gosec
-          path: golang/gosec.result.json
+          path: gosec.result.json
           retention-days: 7
 
   docker-lint:
@@ -53,19 +53,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: Download hadolint
-        working-directory: golang
         run: |-
           curl -sfL https://github.com/hadolint/hadolint/releases/download/v${{ env.HADOLINT_VERSION }}/hadolint-Linux-x86_64 -o hadolint
           chmod u+x ./hadolint
       - name: Run Hadolint
-        working-directory: golang
         run: |-
           ./hadolint Dockerfile > hadolint.json
       - name: Upload hadolint.json file
         uses: actions/upload-artifact@v2
         with:
           name: docker-lint
-          path: golang/hadolint.json
+          path: hadolint.json
           retention-days: 7
 
   synk-bot:
@@ -73,9 +71,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE: arena_bot
-      CONTEXT: ./golang
+      CONTEXT: .
       GOBINARY: arenaBot
-      GOFILE: ./bot/bot.go
+      GOFILE: ./bin/bot/bot.go
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
@@ -112,9 +110,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE: arena_bot
-      CONTEXT: ./golang
+      CONTEXT: .
       GOBINARY: arenaBot
-      GOFILE: ./bot/bot.go
+      GOFILE: ./bin/bot/bot.go
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
@@ -150,9 +148,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE: arena_backend
-      CONTEXT: ./golang
+      CONTEXT: .
       GOBINARY: arenaBackend
-      GOFILE: ./backend/backend.go
+      GOFILE: ./bin/backend/backend.go
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
@@ -189,9 +187,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE: arena_backend
-      CONTEXT: ./golang
+      CONTEXT: .
       GOBINARY: arenaBackend
-      GOFILE: ./backend/backend.go
+      GOFILE: ./bin/backend/backend.go
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
@@ -227,9 +225,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE: arena_loader
-      CONTEXT: ./golang
+      CONTEXT: .
       GOBINARY: arenaLoader
-      GOFILE: ./loader/loader.go
+      GOFILE: ./bin/loader/loader.go
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
