@@ -2,6 +2,11 @@ name: "Check security"
 
 on: ["push", "pull_request"]
 
+env:
+  DOCKER_USER: megalooo
+  GOSEC_VERSION: "2.8.1"
+  HADOLINT_VERSION: "2.6.1"
+
 jobs:
 
   snyk-golang:
@@ -66,7 +71,7 @@ jobs:
           retention-days: 7
 
   synk-bot:
-    name: "Scan snyk image with Snyk"
+    name: "Scan bot image with Snyk"
     runs-on: ubuntu-latest
     env:
       IMAGE: arena_bot
@@ -93,7 +98,7 @@ jobs:
             "GOFILE=${{ env.GOFILE }}"
 
       - name: Scan image Snyk
-        uses: snyk/actions/docker@v0.3.0
+        uses: snyk/actions/docker@0.3.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -170,7 +175,7 @@ jobs:
             "GOFILE=${{ env.GOFILE }}"
 
       - name: Scan image Snyk
-        uses: snyk/actions/docker@v0.3.0
+        uses: snyk/actions/docker@0.3.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -247,7 +252,7 @@ jobs:
             "GOFILE=${{ env.GOFILE }}"
 
       - name: Scan image Snyk
-        uses: snyk/actions/docker@v0.3.0
+        uses: snyk/actions/docker@0.3.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
