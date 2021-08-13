@@ -17,11 +17,12 @@ spec:
         {{- include "backend.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
         - name: "wait-for-service"
           image: busybox
+          imagePullPolicy: Always
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
           command: ['sh', '-c', 'echo "Wait for $MONGO_HOST:$MONGO_PORT" ; until nc -zvw 1 $MONGO_HOST $MONGO_PORT; do echo "Waiting for mongodb"; sleep 2 ; done' ]
           env:
           - name: MONGO_HOST
@@ -34,10 +35,14 @@ spec:
               secretKeyRef:
                 name: {{ include "backend.fullname" . }}
                 key: mongoPort
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
           imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
           command: ["/usr/bin/arenaBackend"]
           env:
             - name: HTTP_PORT

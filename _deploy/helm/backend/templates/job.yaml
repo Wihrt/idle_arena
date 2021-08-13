@@ -15,6 +15,9 @@ spec:
       initContainers:
         - name: "wait-for-service"
           image: busybox
+          imagePullPolicy: Always
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
           command: ['sh', '-c', 'echo "Wait for $MONGO_HOST:$MONGO_PORT" ; until nc -zvw 1 $MONGO_HOST $MONGO_PORT; do echo "Waiting for mongodb"; sleep 2 ; done' ]
           env:
           - name: MONGO_HOST
@@ -31,6 +34,8 @@ spec:
         - name: "{{ .Chart.Name }}-loader"
           image: "{{ .Values.loader.image.repository }}:{{ .Values.loader.image.tag }}"
           imagePullPolicy: {{ .Values.loader.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
           command: ["/usr/bin/arenaLoader"]
           env:
             - name: MONGO_URL

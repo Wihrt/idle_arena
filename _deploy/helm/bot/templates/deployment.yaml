@@ -24,11 +24,12 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "bot.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
         - name: "wait-for-service"
           image: busybox
+          imagePullPolicy: Always
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
           command: ['sh', '-c', 'echo "Wait for $ARENA_HOST:$ARENA_PORT" ; until nc -zvw 1 $ARENA_HOST $ARENA_PORT; do echo "Waiting for arena backend"; sleep 2 ; done' ]
           env:
           - name: ARENA_HOST
@@ -41,10 +42,14 @@ spec:
               secretKeyRef:
                 name: {{ include "bot.fullname" . }}
                 key: arenaPort
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
           command: ["/usr/bin/arenaBot"]
           env:
           - name: APP_ID

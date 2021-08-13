@@ -49,6 +49,7 @@ podSecurityContext:
   capabilities:
     drop:
       - ALL
+  readOnlyRootFilesystem: true
 
 resources:
   limits:
