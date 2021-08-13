@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "backend.fullname" . }}
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+      labels:
+        {{- include "backend.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      initContainers:
+        - name: "wait-for-service"
+          image: busybox
+          imagePullPolicy: Always
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          command: ['sh', '-c', 'echo "Wait for $MONGO_HOST:$MONGO_PORT" ; until nc -zvw 1 $MONGO_HOST $MONGO_PORT; do echo "Waiting for mongodb"; sleep 2 ; done' ]
+          env:
+          - name: MONGO_HOST
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "backend.fullname" . }}
+                key: mongoHost
+          - name: MONGO_PORT
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "backend.fullname" . }}
+                key: mongoPort
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 10m
+              memory: 32Mi
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          command: ["/usr/bin/arenaBackend"]
+          env:
+            - name: HTTP_PORT
+              value: {{ .Values.backend.http.port | quote }}
+            - name: MONGO_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "backend.fullname" . }}
+                  key: mongoUri
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.http.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

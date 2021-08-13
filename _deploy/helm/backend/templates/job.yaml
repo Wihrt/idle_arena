@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "backend.fullname" . }}-loader"
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "backend.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      restartPolicy: "OnFailure"
+      initContainers:
+        - name: "wait-for-service"
+          image: busybox
+          imagePullPolicy: Always
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          command: ['sh', '-c', 'echo "Wait for $MONGO_HOST:$MONGO_PORT" ; until nc -zvw 1 $MONGO_HOST $MONGO_PORT; do echo "Waiting for mongodb"; sleep 2 ; done' ]
+          env:
+          - name: MONGO_HOST
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "backend.fullname" . }}
+                key: mongoHost
+          - name: MONGO_PORT
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "backend.fullname" . }}
+                key: mongoPort
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 10m
+              memory: 32Mi
+      containers:
+        - name: "{{ .Chart.Name }}-loader"
+          image: "{{ .Values.loader.image.repository }}:{{ .Values.loader.image.tag }}"
+          imagePullPolicy: {{ .Values.loader.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          command: ["/usr/bin/arenaLoader"]
+          env:
+            - name: MONGO_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "backend.fullname" . }}
+                  key: mongoUri
+            - name: DND_API
+              value: {{ .Values.loader.env.dndApi | quote }}
+            - name: TIMEOUT
+              value: {{ .Values.loader.env.timeout | quote }}
+            - name: INDEXES
+              value: {{ .Values.loader.env.indexes | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

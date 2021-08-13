@@ -1,0 +1,17 @@
+persistence:
+  enabled: true
+  storageClass: local-path
+  accessModes:
+    - ReadWriteOnce
+  size: 2Gi
+
+volumesPermissions:
+  enabled: true
+
+resources:
+  limits:
+    memory: 256Mi
+    cpu: 100m
+  requests:
+    memory: 256Mi
+    cpu: 100m
