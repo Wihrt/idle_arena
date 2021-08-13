@@ -239,13 +239,13 @@ jobs:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
   
   anchore-loader:
-    name: "Scan image with Anchore"
+    name: "Scan loader image with Anchore"
     runs-on: ubuntu-latest
     env:
       IMAGE: arena_loader
-      CONTEXT: ./golang
+      CONTEXT: .
       GOBINARY: arenaLoader
-      GOFILE: ./loader/loader.go
+      GOFILE: ./bin/loader/loader.go
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
