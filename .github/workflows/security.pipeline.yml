@@ -313,8 +313,8 @@ jobs:
       run: |-
         helmfile -e ${ENVIRONMENT} template > result.yaml
     - name: Template Helmfile - Production
-      working-directory: helmfile
-      if: ${{ github.base_ref == 'develop' }}
+      working-directory: _deploy/helmfile
+      if: ${{ github.base_ref == 'main' }}
       env:
         ENVIRONMENT: production
       run: |-
