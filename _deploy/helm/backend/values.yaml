@@ -39,9 +39,22 @@ serviceAccount:
   create: true
   name: ""
 
-
 service:
   type: ClusterIP
   port: 80
 
-resources: {}
+podSecurityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  capabilities:
+    drop:
+      - ALL
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 64Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+

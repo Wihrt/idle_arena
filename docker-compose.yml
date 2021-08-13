@@ -61,8 +61,6 @@ services:
         networks:
             - arenaBack
             - arenaAdmin
-        volumes:
-            - ./mongo:/docker-entrypoint-initdb.d/
         restart: always
     mongo-express:
         image: mongo-express:latest
