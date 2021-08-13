@@ -184,7 +184,7 @@ jobs:
         echo "${{ secrets.SSH_KEY }}" > $PRIVATE_KEY
         chmod 0600 $PRIVATE_KEY
     - name: Install prerequistes on server
-      working-directory: ansible
+      working-directory: _deploy/ansible
       run: |- 
         ansible-playbook -e "target=$TARGET_HOST" -e "target_user=$TARGET_USER" -e "private_key=$PRIVATE_KEY" -t remote,k3s,kubectl,helm,kubeconfig playbook.yml
     - name: Upload kubeconfig file
@@ -192,7 +192,7 @@ jobs:
       with:
         name: kubeconfig
         path: _deploy/ansible/kubeconfig
-        retention-days: 0
+        retention-days: 1
   
   helmfile:
     name: "Deploy application"
@@ -243,4 +243,17 @@ jobs:
         ENVIRONMENT: production
       run: |-
         helmfile -e $ENVIRONMENT sync
+  
+  remove-artifact:
+    name: "Remove artifacts"
+    runs-on: ubuntu-latest
+    needs:
+      - helmfile
+    steps:
+      - name: Remove kubeconfig artifact
+        uses: jimschubert/delete-artifacts-action@v1
+        with:
+          log_level: "debug"
+          artifact_name: "kubeconfig"
+          min_bytes: "0"
 
