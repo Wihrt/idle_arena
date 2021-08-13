@@ -19,6 +19,8 @@ jobs:
         uses: snyk/actions/golang@0.3.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
 
   golang-security:
     name: "Check Golang security code"
@@ -93,6 +95,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          command: monitor
   
   anchore-bot:
     name: "Scan bot image with Anchore"
@@ -165,6 +168,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          command: monitor
   
   anchore-backend:
     name: "Scan backend image with Anchore"
@@ -237,6 +241,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          command: monitor
   
   anchore-loader:
     name: "Scan loader image with Anchore"
