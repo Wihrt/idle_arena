@@ -1,0 +1,298 @@
+name: "Check security"
+
+on: ["push", "pull_request"]
+
+jobs:
+
+  snyk-golang:
+    name: "Check code security with Snyk"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Run Snyk
+        uses: snyk/actions/golang@0.3.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          json: true
+      - name: Upload synk.json file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif
+
+  golang-security:
+    name: "Check Golang security code"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Download gosec
+        working-directory: golang
+        run: |-
+          curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $PWD v${{ env.GOSEC_VERSION }}
+          chmod u+x gosec
+      - name: Run Gosec Security Scanner
+        working-directory: golang
+        run: |-
+          ./gosec -exclude G404 -fmt json -out gosec.result.json ./...
+      - name: Upload gosec.result.json file
+        uses: actions/upload-artifact@v2
+        with:
+          name: gosec
+          path: golang/gosec.result.json
+          retention-days: 7
+
+  docker-lint:
+    name: "Docker Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Download hadolint
+        working-directory: golang
+        run: |-
+          curl -sfL https://github.com/hadolint/hadolint/releases/download/v${{ env.HADOLINT_VERSION }}/hadolint-Linux-x86_64 -o hadolint
+          chmod u+x ./hadolint
+      - name: Run Hadolint
+        working-directory: golang
+        run: |-
+          ./hadolint Dockerfile > hadolint.json
+      - name: Upload hadolint.json file
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-lint
+          path: golang/hadolint.json
+          retention-days: 7
+
+  synk-bot:
+    name: "Scan snyk image with Snyk"
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: arena_bot
+      CONTEXT: ./golang
+      GOBINARY: arenaBot
+      GOFILE: ./bot/bot.go
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1.2.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1.5.1
+        with:
+          install: true
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Docker build
+        uses: docker/build-push-action@v2.6.1
+        with:
+          context: ${{ env.CONTEXT }}
+          load: true
+          tags: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          build-args: |-
+            "GOBINARY=${{ env.GOBINARY }}"
+            "GOFILE=${{ env.GOFILE }}"
+
+      - name: Scan image Snyk
+        uses: snyk/actions/docker@v0.3.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          json: true
+      - name: Upload synk.json file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif
+  
+  anchore-bot:
+    name: "Scan bot image with Anchore"
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: arena_bot
+      CONTEXT: ./golang
+      GOBINARY: arenaBot
+      GOFILE: ./bot/bot.go
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1.2.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1.5.1
+        with:
+          install: true
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Docker build
+        uses: docker/build-push-action@v2.6.1
+        with:
+          context: ${{ env.CONTEXT }}
+          load: true
+          tags: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          build-args: |-
+            "GOBINARY=${{ env.GOBINARY }}"
+            "GOFILE=${{ env.GOFILE }}"
+
+      - name: Scan image Anchore
+        id: scan
+        uses: anchore/scan-action@v2.0.4
+        with:
+          image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          acs-report-enable: true
+      - name: Upload Anchore scan SARIF report
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+
+  synk-backend:
+    name: "Scan backend image with Snyk"
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: arena_backend
+      CONTEXT: ./golang
+      GOBINARY: arenaBackend
+      GOFILE: ./backend/backend.go
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1.2.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1.5.1
+        with:
+          install: true
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Docker build
+        uses: docker/build-push-action@v2.6.1
+        with:
+          context: ${{ env.CONTEXT }}
+          load: true
+          tags: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          build-args: |-
+            "GOBINARY=${{ env.GOBINARY }}"
+            "GOFILE=${{ env.GOFILE }}"
+
+      - name: Scan image Snyk
+        uses: snyk/actions/docker@v0.3.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          json: true
+      - name: Upload synk.json file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif
+  
+  anchore-backend:
+    name: "Scan backend image with Anchore"
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: arena_backend
+      CONTEXT: ./golang
+      GOBINARY: arenaBackend
+      GOFILE: ./backend/backend.go
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1.2.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1.5.1
+        with:
+          install: true
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Docker build
+        uses: docker/build-push-action@v2.6.1
+        with:
+          context: ${{ env.CONTEXT }}
+          load: true
+          tags: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          build-args: |-
+            "GOBINARY=${{ env.GOBINARY }}"
+            "GOFILE=${{ env.GOFILE }}"
+
+      - name: Scan image Anchore
+        id: scan
+        uses: anchore/scan-action@v2.0.4
+        with:
+          image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          acs-report-enable: true
+      - name: Upload Anchore scan SARIF report
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+
+  synk-loader:
+    name: "Scan loader image with Snyk"
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: arena_loader
+      CONTEXT: ./golang
+      GOBINARY: arenaLoader
+      GOFILE: ./loader/loader.go
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1.2.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1.5.1
+        with:
+          install: true
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Docker build
+        uses: docker/build-push-action@v2.6.1
+        with:
+          context: ${{ env.CONTEXT }}
+          load: true
+          tags: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          build-args: |-
+            "GOBINARY=${{ env.GOBINARY }}"
+            "GOFILE=${{ env.GOFILE }}"
+
+      - name: Scan image Snyk
+        uses: snyk/actions/docker@v0.3.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          json: true
+      - name: Upload synk.json file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif
+  
+  anchore-loader:
+    name: "Scan image with Anchore"
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: arena_loader
+      CONTEXT: ./golang
+      GOBINARY: arenaLoader
+      GOFILE: ./loader/loader.go
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1.2.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1.5.1
+        with:
+          install: true
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Docker build
+        uses: docker/build-push-action@v2.6.1
+        with:
+          context: ${{ env.CONTEXT }}
+          load: true
+          tags: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          build-args: |-
+            "GOBINARY=${{ env.GOBINARY }}"
+            "GOFILE=${{ env.GOFILE }}"
+
+      - name: Scan image Anchore
+        id: scan
+        uses: anchore/scan-action@v2.0.4
+        with:
+          image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+          acs-report-enable: true
+      - name: Upload Anchore scan SARIF report
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+      

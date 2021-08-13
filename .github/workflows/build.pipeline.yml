@@ -1,11 +1,6 @@
 name: "Build and Deploy application"
-
 on:
   push:
-    branches:
-      - develop
-      - main
-  pull_request:
     branches:
       - develop
       - main
@@ -17,51 +12,7 @@ env:
   HADOLINT_VERSION: "2.6.1"
 
 jobs:
-  golang-security:
-    name: "Check Golang security code"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Download gosec
-        working-directory: golang
-        run: |-
-          curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $PWD v${{ env.GOSEC_VERSION }}
-          chmod u+x gosec
-      - name: Run Gosec Security Scanner
-        working-directory: golang
-        run: |-
-          ./gosec -exclude G404 -fmt json -out gosec.result.json ./...
-      - name: Upload gosec.result.json file
-        uses: actions/upload-artifact@v2
-        with:
-          name: gosec
-          path: golang/gosec.result.json
-          retention-days: 7
-  
-  docker-lint:
-    name: "Docker Lint"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Download hadolint
-        working-directory: golang
-        run: |-
-          curl -sfL https://github.com/hadolint/hadolint/releases/download/v${{ env.HADOLINT_VERSION }}/hadolint-Linux-x86_64 -o hadolint
-          chmod u+x ./hadolint
-      - name: Run Hadolint
-        working-directory: golang
-        run: |-
-          ./hadolint Dockerfile > hadolint.json
-      - name: Upload gosec.result.json file
-        uses: actions/upload-artifact@v2
-        with:
-          name: docker-lint
-          path: golang/hadolint.json
-          retention-days: 7
-
-  docker-bot2:
+  docker-bot:
     name: "Build and Push Docker bot image v2"
     runs-on: ubuntu-latest
     needs:
@@ -97,10 +48,14 @@ jobs:
             "GOBINARY=${{ env.GOBINARY }}"
             "GOFILE=${{ env.GOFILE }}"
 
-      - name: Scan image
+      - name: Scan image Anchore
         uses: anchore/scan-action@v2.0.4
         with:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+      - name: Scan image Snyk
+        uses: snyk/actions/node@v0.3.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Docker push latest
         if: github.ref == 'refs/heads/develop'
         uses: docker/build-push-action@v2.6.1
@@ -124,36 +79,36 @@ jobs:
             "GOFILE=${{ env.GOFILE }}"
 
       
-  docker-bot:
-    name: "Build and Push Docker bot image"
-    runs-on: ubuntu-latest
-    needs:
-      - golang-security
-      - docker-lint
-    env:
-      IMAGE: arena_bot
-      CONTEXT: ./golang
-      GOBINARY: arenaBot
-      GOFILE: ./bot/bot.go
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Docker login
-        run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build the Docker image
-        run: |-
-          docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
-          docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
-      - name: Tag Docker image to latest
-        if: github.ref == 'refs/heads/develop'
-        run: |-
-          docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
-          docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
-      - name: Tag Docker image to main
-        if: github.ref == 'refs/heads/main'
-        run: |-
-          docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
-          docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
+  # docker-bot:
+  #   name: "Build and Push Docker bot image"
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - golang-security
+  #     - docker-lint
+  #   env:
+  #     IMAGE: arena_bot
+  #     CONTEXT: ./golang
+  #     GOBINARY: arenaBot
+  #     GOFILE: ./bot/bot.go
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
+  #     - name: Docker login
+  #       run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
+  #     - name: Build the Docker image
+  #       run: |-
+  #         docker build --build-arg GOBINARY=${{ env.GOBINARY }} --build-arg GOFILE=${{ env.GOFILE }} -t ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.CONTEXT }}
+  #         docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
+  #     - name: Tag Docker image to latest
+  #       if: github.ref == 'refs/heads/develop'
+  #       run: |-
+  #         docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
+  #         docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:latest
+  #     - name: Tag Docker image to main
+  #       if: github.ref == 'refs/heads/main'
+  #       run: |-
+  #         docker tag ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
+  #         docker push ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:main
       
   docker-backend:
     name: "Build and Push Docker backend image"
