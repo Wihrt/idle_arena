@@ -1,6 +1,10 @@
 name: "Check security"
 
-on: ["pull_request"]
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
 
 env:
   DOCKER_USER: megalooo
@@ -280,4 +284,50 @@ jobs:
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: ${{ steps.scan.outputs.sarif }}
+
+  helmfile:
+    name: "Scan helmfile template with Snyk"
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/roboll/helmfile:helm3-v0.140.0
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install GPG and inject GPG private key
+      env:
+        PRIVATE_KEY: private.key
+      run: |-
+        apk add --no-cache --update gnupg
+        echo "${{ secrets.PGP_KEY }}" > $PRIVATE_KEY
+        gpg --import $PRIVATE_KEY
+        rm -f $PRIVATE_KEY
+    - name: Install Helm plugins
+      run: |-
+        helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.2
+        helm plugin install https://github.com/databus23/helm-diff
+    - name: Template Helmfile - Develop
+      working-directory: _deploy/helmfile
+      if: ${{ github.base_ref == 'develop' }}
+      env:
+        ENVIRONMENT: develop
+      run: |-
+        helmfile -e ${ENVIRONMENT} template > result.yaml
+    - name: Template Helmfile - Production
+      working-directory: helmfile
+      if: ${{ github.base_ref == 'develop' }}
+      env:
+        ENVIRONMENT: production
+      run: |-
+        helmfile -e ${ENVIRONMENT} template > result.yaml
+    - name: Run Snyk to check Kubernetes manifest file for issues
+      uses: snyk/actions/iac@0.3.0
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        file: _deploy/helmfile/result.yaml
+        sarif: true
+    - name: Upload result to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: snyk.sarif
       
