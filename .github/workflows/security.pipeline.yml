@@ -19,8 +19,6 @@ jobs:
         uses: snyk/actions/golang@0.3.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          json: true
       - name: Upload synk.json file
         uses: github/codeql-action/upload-sarif@v1
         with:
@@ -103,7 +101,6 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
-          json: true
       - name: Upload synk.json file
         uses: github/codeql-action/upload-sarif@v1
         with:
@@ -180,7 +177,6 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
-          json: true
       - name: Upload synk.json file
         uses: github/codeql-action/upload-sarif@v1
         with:
@@ -257,7 +253,6 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
-          json: true
       - name: Upload synk.json file
         uses: github/codeql-action/upload-sarif@v1
         with:
