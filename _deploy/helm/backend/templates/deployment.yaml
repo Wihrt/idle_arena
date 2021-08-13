@@ -36,7 +36,12 @@ spec:
                 name: {{ include "backend.fullname" . }}
                 key: mongoPort
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 10m
+              memory: 32Mi
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"

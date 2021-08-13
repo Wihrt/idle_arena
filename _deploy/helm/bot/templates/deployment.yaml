@@ -43,7 +43,12 @@ spec:
                 name: {{ include "bot.fullname" . }}
                 key: arenaPort
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 10m
+              memory: 32Mi
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

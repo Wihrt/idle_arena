@@ -30,6 +30,13 @@ spec:
               secretKeyRef:
                 name: {{ include "backend.fullname" . }}
                 key: mongoPort
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 10m
+              memory: 32Mi
       containers:
         - name: "{{ .Chart.Name }}-loader"
           image: "{{ .Values.loader.image.repository }}:{{ .Values.loader.image.tag }}"
