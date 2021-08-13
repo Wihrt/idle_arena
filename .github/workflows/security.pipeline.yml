@@ -19,12 +19,6 @@ jobs:
         uses: snyk/actions/golang@0.3.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          sarif: true
-      - name: Upload synk.json file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: snyk.sarif
 
   golang-security:
     name: "Check Golang security code"
@@ -99,11 +93,6 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
-          sarif: true
-      - name: Upload synk.json file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: snyk.sarif
   
   anchore-bot:
     name: "Scan bot image with Anchore"
@@ -176,11 +165,6 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
-          sarif: true
-      - name: Upload synk.json file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: snyk.sarif
   
   anchore-backend:
     name: "Scan backend image with Anchore"
@@ -253,11 +237,6 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.DOCKER_USER }}/${{ env.IMAGE }}:${{ github.sha }}
-          sarif: true
-      - name: Upload synk.json file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: snyk.sarif
   
   anchore-loader:
     name: "Scan image with Anchore"
