@@ -10,18 +10,27 @@ import (
 	"go.uber.org/zap"
 )
 
-func (c *Client) RegisterManager(mID string) (*manager.Manager, error) {
+func (c *Client) RegisterManager(mID string, difficulty int) (*manager.Manager, error) {
 
 	var (
-		m       = manager.NewManager(mID)
 		url     = []string{c.URL, utils.APIBase, "managers"}
 		fullURL = strings.Join(url, "/")
 	)
 
 	zap.L().Info("Register manager",
 		zap.String("ManagerID", mID),
+		zap.Int("Difficulty", difficulty),
 		zap.String("URL", fullURL),
 	)
+
+	m, err := manager.NewManager(mID, difficulty)
+	if err != nil {
+		zap.L().Error("Cannot create manager",
+			zap.String("ManagerID", mID),
+			zap.Int("Difficulty", difficulty),
+			zap.Error(err),
+		)
+	}
 
 	res, err := grequests.Post(fullURL, &grequests.RequestOptions{
 		JSON:           m,
@@ -30,6 +39,8 @@ func (c *Client) RegisterManager(mID string) (*manager.Manager, error) {
 	if err != nil {
 		zap.L().Error("Cannot register manager",
 			zap.String("ManagerID", mID),
+			zap.Int("Difficulty", difficulty),
+			zap.String("URL", fullURL),
 			zap.Error(err),
 		)
 		return m, err

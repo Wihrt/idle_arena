@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/discord"
@@ -23,21 +24,32 @@ func HireGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 		url       = os.Getenv("ARENA_URL")
 		a         = client.NewClient(url)
 		data      api.InteractionResponse
+		number    = 1
 	)
 
-	g, err := a.HireGladiator(mID)
-	if err != nil {
-		zap.L().Error("Cannot hire a new gladiator",
-			zap.String("UserID", e.Member.User.ID.String()),
-			zap.String("GuildID", e.GuildID.String()),
-			zap.Error(err),
-		)
-		return data, err
+	for _, o := range e.Data.Options {
+		switch o.Name {
+		case "number":
+			number, _ = strconv.Atoi(o.Value.String())
+		}
 	}
 
-	msg = fmt.Sprintf(formatMsg, g.Name)
-	embed := GladiatorToEmbed(g)
-	eArray = append(eArray, embed)
+	seq := make([]int, number)
+	for range seq {
+		g, err := a.HireGladiator(mID)
+		if err != nil {
+			zap.L().Error("Cannot hire a new gladiator",
+				zap.String("UserID", e.Member.User.ID.String()),
+				zap.String("GuildID", e.GuildID.String()),
+				zap.Error(err),
+			)
+			return data, err
+		}
+
+		msg = fmt.Sprintf(formatMsg, g.Name)
+		embed := utils.GladiatorToEmbed(g)
+		eArray = append(eArray, embed)
+	}
 
 	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,

@@ -30,8 +30,8 @@ func FightGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionResp
 		)
 	}
 
-	menu := GladiatorSelectMenu(g, e.Data.Options[0].Name+"_fight_gladiator_menu", 1)
-	components := ComponentsWrapper([]discord.Component{menu})
+	menu := utils.GladiatorSelectMenu(g, e.Data.Options[0].Name+"_fight_gladiator_menu", 1)
+	components := utils.ComponentsWrapper([]discord.Component{menu})
 
 	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
@@ -75,8 +75,21 @@ func FightGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 			)
 			return data, err
 		}
-		e := FightToEmbed(f)
-		eArray = append(eArray, e)
+		embed := utils.FightToEmbed(f)
+		eArray = append(eArray, embed)
+
+		if f.KilledInCombat {
+			err := a.FireGladiator(mID, gID)
+			if err != nil {
+				zap.L().Error("Cannot fire gladiator",
+					zap.String("UserID", e.Member.User.ID.String()),
+					zap.String("GuildID", e.GuildID.String()),
+					zap.String("GladiatorID", gID),
+					zap.String("Manager ID", mID),
+					zap.Error(err),
+				)
+			}
+		}
 	}
 
 	data = api.InteractionResponse{

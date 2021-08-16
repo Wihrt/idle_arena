@@ -40,7 +40,7 @@ func (s *Server) NewGladiator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	g, err := gladiator.NewGladiator(1, managerID, &s.Mongo)
+	g, err := gladiator.NewGladiator(1, m, &s.Mongo)
 	if err != nil {
 		zap.L().Error("Cannot create gladiator",
 			zap.String("managerID", managerID),

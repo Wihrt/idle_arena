@@ -28,8 +28,8 @@ func ShowGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionRespo
 		)
 	}
 
-	menu := GladiatorSelectMenu(g, "show_gladiator_menu", 10)
-	components := ComponentsWrapper([]discord.Component{menu})
+	menu := utils.GladiatorSelectMenu(g, "show_gladiator_menu", 10)
+	components := utils.ComponentsWrapper([]discord.Component{menu})
 
 	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,
@@ -64,9 +64,8 @@ func ShowGladiators(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 			return data, err
 		}
 
-		e := GladiatorToEmbed(g)
+		e := utils.GladiatorToEmbed(g)
 		eArray = append(eArray, e)
-
 	}
 
 	data = api.InteractionResponse{

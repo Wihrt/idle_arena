@@ -30,8 +30,8 @@ func FireGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionRespo
 		)
 	}
 
-	menu := GladiatorSelectMenu(g, "fire_gladiator_menu", 10)
-	components := ComponentsWrapper([]discord.Component{menu})
+	menu := utils.GladiatorSelectMenu(g, "fire_gladiator_menu", 10)
+	components := utils.ComponentsWrapper([]discord.Component{menu})
 
 	data = api.InteractionResponse{
 		Type: api.MessageInteractionWithSource,

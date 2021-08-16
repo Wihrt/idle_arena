@@ -8,15 +8,17 @@ import (
 )
 
 type Result struct {
-	FightWon  bool                 `json:"fight_won"`
-	Gladiator *gladiator.Gladiator `json:"gladiator"`
-	Enemy     *gladiator.Gladiator `json:"enemy"`
+	FightWon       bool                 `json:"fight_won"`
+	KilledInCombat bool                 `json:"killed_in_combat"`
+	Gladiator      *gladiator.Gladiator `json:"gladiator"`
+	Enemy          *gladiator.Gladiator `json:"enemy"`
 }
 
 func ResolveFight(g *gladiator.Gladiator, m *mongo.Client, s *Settings) (*Result, error) {
 	var fightResult = &Result{
-		FightWon:  false,
-		Gladiator: g}
+		FightWon:       false,
+		KilledInCombat: false,
+		Gladiator:      g}
 
 	fightWon, enemy, err := Fight(g, m, s)
 	if err != nil {
@@ -24,6 +26,21 @@ func ResolveFight(g *gladiator.Gladiator, m *mongo.Client, s *Settings) (*Result
 			zap.Error(err),
 		)
 		return fightResult, err
+	}
+
+	if !fightWon {
+		deathSave := dice.Roll(1, 20, -1)
+		zap.L().Debug("Result of death save",
+			zap.Int("result", deathSave),
+			zap.Bool("failed", deathSave < 10),
+		)
+		if deathSave < 10 {
+			g.CurrentDeathSaves += 1
+		}
+	}
+
+	if g.CurrentDeathSaves == g.MaxDeathSaves {
+		fightResult.KilledInCombat = true
 	}
 
 	fightResult.FightWon = fightWon
@@ -44,10 +61,9 @@ func ResolveFight(g *gladiator.Gladiator, m *mongo.Client, s *Settings) (*Result
 func Fight(player *gladiator.Gladiator, m *mongo.Client, s *Settings) (bool, *gladiator.Gladiator, error) {
 	var (
 		enemy *gladiator.Gladiator
-		level int
 	)
 
-	enemy, err := gladiator.NewGladiator(level+int(s.Difficulty), "", m)
+	enemy, err := gladiator.NewEnemy(player.Level+int(s.Difficulty), m)
 	if err != nil {
 		zap.L().Error("Error when creating enemy",
 			zap.Error(err),
