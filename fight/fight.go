@@ -35,23 +35,23 @@ func ResolveFight(g *gladiator.Gladiator, m *mongo.Client, s *Settings) (*Result
 			zap.Bool("failed", deathSave < 10),
 		)
 		if deathSave < 10 {
-			g.CurrentDeathSaves += 1
+			g.DeathSave.Current = g.DeathSave.Current + 1
 		}
 	}
 
-	if g.CurrentDeathSaves == g.MaxDeathSaves {
+	if g.DeathSave.Current == g.DeathSave.Max {
 		fightResult.KilledInCombat = true
 	}
 
 	fightResult.FightWon = fightWon
 	fightResult.Enemy = enemy
-	g.CurrentHealth = g.MaxHealth
+	g.Health.Current = g.Health.Max
 	if fightWon {
 		expGained := dice.Roll(int(s.Difficulty)+1, 20, -1)
-		g.Experience += expGained
+		g.Experience.Current += expGained
 	}
 
-	if g.Experience >= g.ExperienceToNextLevel {
+	if g.Experience.Current >= g.Experience.NextLevel {
 		g.LevelUp()
 	}
 
@@ -63,7 +63,7 @@ func Fight(player *gladiator.Gladiator, m *mongo.Client, s *Settings) (bool, *gl
 		enemy *gladiator.Gladiator
 	)
 
-	enemy, err := gladiator.NewEnemy(player.Level+int(s.Difficulty), m)
+	enemy, err := gladiator.NewEnemy(player.Experience.Level+int(s.Difficulty), m)
 	if err != nil {
 		zap.L().Error("Error when creating enemy",
 			zap.Error(err),
@@ -78,11 +78,11 @@ func Fight(player *gladiator.Gladiator, m *mongo.Client, s *Settings) (bool, *gl
 		zap.String("weapon", enemy.Weapon.Name),
 		zap.String("armor", enemy.Armor.Name),
 		zap.Int("armorClass", enemy.ArmorClass),
-		zap.Int("currentHealth", enemy.CurrentHealth),
-		zap.Int("maxHealth", enemy.MaxHealth),
-		zap.Int("level", enemy.Level),
-		zap.Int("experience", enemy.Experience),
-		zap.Int("experienceNextLevel", enemy.ExperienceToNextLevel),
+		zap.Int("currentHealth", enemy.Health.Current),
+		zap.Int("maxHealth", enemy.Health.Max),
+		zap.Int("level", enemy.Experience.Level),
+		zap.Int("experience", enemy.Experience.Current),
+		zap.Int("experienceNextLevel", enemy.Experience.NextLevel),
 	)
 
 	for {
@@ -93,7 +93,7 @@ func Fight(player *gladiator.Gladiator, m *mongo.Client, s *Settings) (bool, *gl
 	}
 
 	// Determine if the player has won the fight
-	return !(player.CurrentHealth <= 0), enemy, nil
+	return !(player.Health.Current <= 0), enemy, nil
 }
 
 func Round(player *gladiator.Gladiator, enemy *gladiator.Gladiator) bool {
@@ -110,10 +110,10 @@ func Round(player *gladiator.Gladiator, enemy *gladiator.Gladiator) bool {
 		pDamage := player.Damage()
 		zap.L().Debug("Player damages enemy",
 			zap.Int("Damage roll", pDamage),
-			zap.Int("Enemy health", enemy.CurrentHealth),
-			zap.Int("Enemy after hit", enemy.CurrentHealth-pDamage),
+			zap.Int("Enemy health", enemy.Health.Current),
+			zap.Int("Enemy after hit", enemy.Health.Current-pDamage),
 		)
-		enemy.CurrentHealth -= pDamage
+		enemy.Health.Current -= pDamage
 	}
 
 	eAttack := enemy.Attack()
@@ -127,18 +127,18 @@ func Round(player *gladiator.Gladiator, enemy *gladiator.Gladiator) bool {
 		eDamage := enemy.Damage()
 		zap.L().Debug("Enemy damages player",
 			zap.Int("Damage roll", eDamage),
-			zap.Int("Player health", player.CurrentHealth),
-			zap.Int("Player after hit", player.CurrentHealth-eDamage),
+			zap.Int("Player health", player.Health.Current),
+			zap.Int("Player after hit", player.Health.Current-eDamage),
 		)
-		player.CurrentHealth -= eDamage
+		player.Health.Current -= eDamage
 	}
 
 	zap.L().Debug("End of round",
-		zap.Int("Player health", player.CurrentHealth),
-		zap.Int("Enemy health", enemy.CurrentHealth),
+		zap.Int("Player health", player.Health.Current),
+		zap.Int("Enemy health", enemy.Health.Current),
 	)
 
-	if player.CurrentHealth <= 0 || enemy.CurrentHealth <= 0 {
+	if player.Health.Current <= 0 || enemy.Health.Current <= 0 {
 		fightAgain = false
 	}
 

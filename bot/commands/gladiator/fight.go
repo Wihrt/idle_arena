@@ -30,15 +30,25 @@ func FightGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionResp
 		)
 	}
 
-	menu := utils.GladiatorSelectMenu(g, e.Data.Options[0].Name+"_fight_gladiator_menu", 1)
-	components := utils.ComponentsWrapper([]discord.Component{menu})
+	if len(g) == 0 {
+		data = api.InteractionResponse{
+			Type: api.MessageInteractionWithSource,
+			Data: &api.InteractionResponseData{
+				Content: option.NewNullableString("You have no gladiators !"),
+			},
+		}
+	} else {
 
-	data = api.InteractionResponse{
-		Type: api.MessageInteractionWithSource,
-		Data: &api.InteractionResponseData{
-			Content:    option.NewNullableString("Select your gladiator to fight"),
-			Components: &components,
-		},
+		menu := utils.GladiatorSelectMenu(g, e.Data.Options[0].Name+"_fight_gladiator_menu", 1)
+		components := utils.ComponentsWrapper([]discord.Component{menu})
+
+		data = api.InteractionResponse{
+			Type: api.MessageInteractionWithSource,
+			Data: &api.InteractionResponseData{
+				Content:    option.NewNullableString("Select your gladiator to fight"),
+				Components: &components,
+			},
+		}
 	}
 
 	return data, nil
@@ -75,8 +85,9 @@ func FightGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 			)
 			return data, err
 		}
-		embed := utils.FightToEmbed(f)
-		eArray = append(eArray, embed)
+		embedFight := utils.FightToEmbed(f)
+		embedGladiator := utils.GladiatorToEmbed(*f.Gladiator)
+		eArray = append(eArray, embedGladiator, embedFight)
 
 		if f.KilledInCombat {
 			err := a.FireGladiator(mID, gID)

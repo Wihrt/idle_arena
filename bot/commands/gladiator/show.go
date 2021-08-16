@@ -28,15 +28,24 @@ func ShowGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionRespo
 		)
 	}
 
-	menu := utils.GladiatorSelectMenu(g, "show_gladiator_menu", 10)
-	components := utils.ComponentsWrapper([]discord.Component{menu})
+	if len(g) == 0 {
+		data = api.InteractionResponse{
+			Type: api.MessageInteractionWithSource,
+			Data: &api.InteractionResponseData{
+				Content: option.NewNullableString("You have no gladiators !"),
+			},
+		}
+	} else {
+		menu := utils.GladiatorSelectMenu(g, "show_gladiator_menu", 10)
+		components := utils.ComponentsWrapper([]discord.Component{menu})
 
-	data = api.InteractionResponse{
-		Type: api.MessageInteractionWithSource,
-		Data: &api.InteractionResponseData{
-			Content:    option.NewNullableString("Select your gladiator to show"),
-			Components: &components,
-		},
+		data = api.InteractionResponse{
+			Type: api.MessageInteractionWithSource,
+			Data: &api.InteractionResponseData{
+				Content:    option.NewNullableString("Select your gladiator to show"),
+				Components: &components,
+			},
+		}
 	}
 
 	return data, nil

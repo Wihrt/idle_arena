@@ -281,17 +281,15 @@ func (s *Server) FightGladiator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if fightResult.FightWon {
-		err := s.updateGladiator(g)
-		if err != nil {
-			zap.L().Error("Cannot update gladiator",
-				zap.String("managerID", managerID),
-				zap.String("gladiatorID", gladiatorID),
-				zap.Error(err),
-			)
-			w.WriteHeader(500)
-			return
-		}
+	err = s.updateGladiator(g)
+	if err != nil {
+		zap.L().Error("Cannot update gladiator",
+			zap.String("managerID", managerID),
+			zap.String("gladiatorID", gladiatorID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
 	}
 
 	data, err := json.Marshal(fightResult)

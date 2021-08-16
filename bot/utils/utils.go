@@ -83,9 +83,9 @@ func GladiatorToEmbed(g gladiator.Gladiator) discord.Embed {
 			{Name: "Weapon", Value: g.Weapon.Name, Inline: true},
 			{Name: "Armor", Value: g.Armor.Name, Inline: true},
 			{Name: "Armor Class", Value: strconv.Itoa(g.ArmorClass), Inline: true},
-			{Name: "Level", Value: strconv.Itoa(g.Level), Inline: true},
-			{Name: "Experience", Value: strconv.Itoa(g.Experience) + "/" + strconv.Itoa(g.ExperienceToNextLevel), Inline: true},
-			{Name: "Death Saves", Value: strconv.Itoa(g.CurrentDeathSaves) + "/" + strconv.Itoa(g.MaxDeathSaves), Inline: true},
+			{Name: "Level", Value: strconv.Itoa(g.Experience.Level), Inline: true},
+			{Name: "Experience", Value: strconv.Itoa(g.Experience.Current) + "/" + strconv.Itoa(g.Experience.NextLevel), Inline: true},
+			{Name: "Death Saves", Value: strconv.Itoa(g.DeathSave.Current) + "/" + strconv.Itoa(g.DeathSave.Max), Inline: true},
 		},
 	}
 
@@ -125,7 +125,7 @@ func FightToEmbed(f fight.Result) discord.Embed {
 			URL: thumbnailUrl,
 		},
 		Fields: []discord.EmbedField{
-			{Name: "Enemy level", Value: strconv.Itoa(f.Enemy.Level), Inline: false},
+			{Name: "Enemy level", Value: strconv.Itoa(f.Enemy.Experience.Level), Inline: false},
 			{Name: "Enemy " + f.Enemy.Strength.Name, Value: strconv.Itoa(f.Enemy.Strength.Value), Inline: true},
 			{Name: "Enemy " + f.Enemy.Dexterity.Name, Value: strconv.Itoa(f.Enemy.Dexterity.Value), Inline: true},
 			{Name: "Enemy " + f.Enemy.Constitution.Name, Value: strconv.Itoa(f.Enemy.Constitution.Value), Inline: true},
