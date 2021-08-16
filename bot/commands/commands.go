@@ -24,6 +24,14 @@ var RegisteredCommands = []api.CreateCommandData{
 	{
 		Name:        "hire",
 		Description: "Hire a new Gladiator",
+		Options: []discord.CommandOption{
+			{
+				Type:        discord.IntegerOption,
+				Name:        "number",
+				Description: "Number of gladiator you want to hire",
+				Required:    false,
+			},
+		},
 	},
 	{
 		Name:        "show",
@@ -94,7 +102,7 @@ func HandleInteraction(e *gateway.InteractionCreateEvent) (api.InteractionRespon
 	// Here are the commands sent the first time by the user
 	switch e.Data.Name {
 	case "register":
-		data, err = mcommands.RegisterManager(e)
+		data, err = mcommands.RegisterManagerMenu(e)
 	case "retire":
 		data, err = mcommands.RetireManager(e)
 	case "hire":
@@ -109,6 +117,10 @@ func HandleInteraction(e *gateway.InteractionCreateEvent) (api.InteractionRespon
 
 	// Here are the Component Interaction Response
 	switch e.Data.CustomID {
+	case "easy_manager_difficulty",
+		"normal_manager_difficulty",
+		"hard_manager_difficulty":
+		data, err = mcommands.RegisterManager(e)
 	case "show_gladiator_menu":
 		data, err = gcommands.ShowGladiators(e)
 	case "easy_fight_gladiator_menu",

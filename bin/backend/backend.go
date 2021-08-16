@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/wihrt/idle_arena/arena"
+	"github.com/wihrt/idle_arena/arena/server"
 	"github.com/wihrt/idle_arena/logging"
 	"github.com/wihrt/idle_arena/utils"
 	"go.uber.org/zap"
@@ -29,7 +29,7 @@ func main() {
 	)
 
 	zap.L().Info("Starting backend")
-	a := arena.NewServer(mongoDBURI)
+	a := server.NewServer(mongoDBURI)
 	zap.L().Info("Connected to MongoDB")
 
 	router := mux.NewRouter()

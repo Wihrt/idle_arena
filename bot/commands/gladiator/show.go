@@ -7,7 +7,7 @@ import (
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
-	"github.com/wihrt/idle_arena/arena"
+	"github.com/wihrt/idle_arena/arena/client"
 	"github.com/wihrt/idle_arena/bot/utils"
 	"go.uber.org/zap"
 )
@@ -16,11 +16,11 @@ func ShowGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionRespo
 	var (
 		mID  = utils.GenerateManagerID(e)
 		url  = os.Getenv("ARENA_URL")
-		a    = arena.NewClient(url)
+		c    = client.NewClient(url)
 		data api.InteractionResponse
 	)
 
-	g, err := a.GetGladiators(mID)
+	g, err := c.GetGladiators(mID)
 	if err != nil {
 		zap.L().Error("Cannot get gladiators",
 			zap.String("managerID", mID),
@@ -28,15 +28,24 @@ func ShowGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionRespo
 		)
 	}
 
-	menu := GladiatorSelectMenu(g, "show_gladiator_menu", 10)
-	components := ComponentsWrapper([]discord.Component{menu})
+	if len(g) == 0 {
+		data = api.InteractionResponse{
+			Type: api.MessageInteractionWithSource,
+			Data: &api.InteractionResponseData{
+				Content: option.NewNullableString("You have no gladiators !"),
+			},
+		}
+	} else {
+		menu := utils.GladiatorSelectMenu(g, "show_gladiator_menu", 10)
+		components := utils.ComponentsWrapper([]discord.Component{menu})
 
-	data = api.InteractionResponse{
-		Type: api.MessageInteractionWithSource,
-		Data: &api.InteractionResponseData{
-			Content:    option.NewNullableString("Select your gladiator to show"),
-			Components: &components,
-		},
+		data = api.InteractionResponse{
+			Type: api.MessageInteractionWithSource,
+			Data: &api.InteractionResponseData{
+				Content:    option.NewNullableString("Select your gladiator to show"),
+				Components: &components,
+			},
+		}
 	}
 
 	return data, nil
@@ -47,7 +56,7 @@ func ShowGladiators(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 	var (
 		mID    = utils.GenerateManagerID(e)
 		url    = os.Getenv("ARENA_URL")
-		a      = arena.NewClient(url)
+		a      = client.NewClient(url)
 		data   api.InteractionResponse
 		eArray []discord.Embed
 	)
@@ -64,9 +73,8 @@ func ShowGladiators(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 			return data, err
 		}
 
-		e := GladiatorToEmbed(g)
+		e := utils.GladiatorToEmbed(g)
 		eArray = append(eArray, e)
-
 	}
 
 	data = api.InteractionResponse{

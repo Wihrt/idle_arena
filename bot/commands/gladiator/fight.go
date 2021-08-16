@@ -8,7 +8,7 @@ import (
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
-	"github.com/wihrt/idle_arena/arena"
+	"github.com/wihrt/idle_arena/arena/client"
 	"github.com/wihrt/idle_arena/bot/utils"
 	"github.com/wihrt/idle_arena/fight"
 	"go.uber.org/zap"
@@ -18,11 +18,11 @@ func FightGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionResp
 	var (
 		mID  = utils.GenerateManagerID(e)
 		url  = os.Getenv("ARENA_URL")
-		a    = arena.NewClient(url)
+		c    = client.NewClient(url)
 		data api.InteractionResponse
 	)
 
-	g, err := a.GetGladiators(mID)
+	g, err := c.GetGladiators(mID)
 	if err != nil {
 		zap.L().Error("Cannot get gladiators",
 			zap.String("managerID", mID),
@@ -30,15 +30,25 @@ func FightGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionResp
 		)
 	}
 
-	menu := GladiatorSelectMenu(g, e.Data.Options[0].Name+"_fight_gladiator_menu", 1)
-	components := ComponentsWrapper([]discord.Component{menu})
+	if len(g) == 0 {
+		data = api.InteractionResponse{
+			Type: api.MessageInteractionWithSource,
+			Data: &api.InteractionResponseData{
+				Content: option.NewNullableString("You have no gladiators !"),
+			},
+		}
+	} else {
 
-	data = api.InteractionResponse{
-		Type: api.MessageInteractionWithSource,
-		Data: &api.InteractionResponseData{
-			Content:    option.NewNullableString("Select your gladiator to fight"),
-			Components: &components,
-		},
+		menu := utils.GladiatorSelectMenu(g, e.Data.Options[0].Name+"_fight_gladiator_menu", 1)
+		components := utils.ComponentsWrapper([]discord.Component{menu})
+
+		data = api.InteractionResponse{
+			Type: api.MessageInteractionWithSource,
+			Data: &api.InteractionResponseData{
+				Content:    option.NewNullableString("Select your gladiator to fight"),
+				Components: &components,
+			},
+		}
 	}
 
 	return data, nil
@@ -49,7 +59,7 @@ func FightGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 	var (
 		mID        = utils.GenerateManagerID(e)
 		url        = os.Getenv("ARENA_URL")
-		a          = arena.NewClient(url)
+		a          = client.NewClient(url)
 		data       api.InteractionResponse
 		eArray     []discord.Embed
 		difficulty = strings.Split(e.Data.CustomID, "_")[0]
@@ -75,8 +85,22 @@ func FightGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 			)
 			return data, err
 		}
-		e := FightToEmbed(f)
-		eArray = append(eArray, e)
+		embedFight := utils.FightToEmbed(f)
+		embedGladiator := utils.GladiatorToEmbed(*f.Gladiator)
+		eArray = append(eArray, embedGladiator, embedFight)
+
+		if f.KilledInCombat {
+			err := a.FireGladiator(mID, gID)
+			if err != nil {
+				zap.L().Error("Cannot fire gladiator",
+					zap.String("UserID", e.Member.User.ID.String()),
+					zap.String("GuildID", e.GuildID.String()),
+					zap.String("GladiatorID", gID),
+					zap.String("Manager ID", mID),
+					zap.Error(err),
+				)
+			}
+		}
 	}
 
 	data = api.InteractionResponse{
