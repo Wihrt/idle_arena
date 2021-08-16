@@ -35,7 +35,19 @@ var RegisteredCommands = []api.CreateCommandData{
 	},
 	{
 		Name:        "show",
-		Description: "Show your gladiator(s)",
+		Description: "Show your manager/gladiators",
+		Options: []discord.CommandOption{
+			{
+				Type:        discord.SubcommandOption,
+				Name:        "manager",
+				Description: "Show the manager",
+			},
+			{
+				Type:        discord.SubcommandOption,
+				Name:        "gladiators",
+				Description: "Show the gladiators",
+			},
+		},
 	},
 	{
 		Name:        "fight",
@@ -108,7 +120,12 @@ func HandleInteraction(e *gateway.InteractionCreateEvent) (api.InteractionRespon
 	case "hire":
 		data, err = gcommands.HireGladiator(e)
 	case "show":
-		data, err = gcommands.ShowGladiatorsMenu(e)
+		switch e.Data.Options[0].Name {
+		case "manager":
+			data, err = mcommands.ShowManager(e)
+		case "gladiators":
+			data, err = gcommands.ShowGladiatorsMenu(e)
+		}
 	case "fight":
 		data, err = gcommands.FightGladiatorsMenu(e)
 	case "fire":

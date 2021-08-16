@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/levigross/grequests"
+	"github.com/wihrt/idle_arena/arena/errors"
 	"github.com/wihrt/idle_arena/fight"
 	"github.com/wihrt/idle_arena/gladiator"
 	"github.com/wihrt/idle_arena/utils"
@@ -36,12 +37,20 @@ func (c *Client) HireGladiator(mID string) (gladiator.Gladiator, error) {
 	}
 
 	if !res.Ok {
+
 		zap.L().Error("Cannot hire new gladiator",
 			zap.String("ManagerID", mID),
 			zap.Int("status code", res.StatusCode),
 			zap.Error(ErrWrongStatusCode),
 		)
-		return g, ErrWrongStatusCode
+
+		switch res.StatusCode {
+		case 400:
+			return g, errors.ErrNotEnoughMoney
+		default:
+			return g, ErrWrongStatusCode
+
+		}
 	}
 
 	err = res.JSON(&g)

@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
@@ -125,6 +126,7 @@ func FightToEmbed(f fight.Result) discord.Embed {
 			URL: thumbnailUrl,
 		},
 		Fields: []discord.EmbedField{
+			{Name: "Money gained", Value: strconv.Itoa(f.MoneyGained), Inline: false},
 			{Name: "Enemy level", Value: strconv.Itoa(f.Enemy.Experience.Level), Inline: false},
 			{Name: "Enemy " + f.Enemy.Strength.Name, Value: strconv.Itoa(f.Enemy.Strength.Value), Inline: true},
 			{Name: "Enemy " + f.Enemy.Dexterity.Name, Value: strconv.Itoa(f.Enemy.Dexterity.Value), Inline: true},
@@ -133,6 +135,34 @@ func FightToEmbed(f fight.Result) discord.Embed {
 			{Name: "Enemy Armor", Value: f.Enemy.Armor.Name, Inline: true},
 			{Name: "Enemy Armor Class", Value: strconv.Itoa(f.Enemy.ArmorClass), Inline: true},
 		},
+	}
+
+	return embed
+}
+
+func ManagerToEmbed(m manager.Manager, g []gladiator.Gladiator) discord.Embed {
+
+	m.MoneyPouch.ConvertPieces()
+	fields := []discord.EmbedField{
+		{Name: "Copper Pieces", Value: strconv.Itoa(m.MoneyPouch.CopperPieces), Inline: true},
+		{Name: "Silver Pieces", Value: strconv.Itoa(m.MoneyPouch.SilverPieces), Inline: true},
+		{Name: "Gold Pieces", Value: strconv.Itoa(m.MoneyPouch.GoldPieces), Inline: true},
+	}
+
+	if len(g) > 0 {
+		var gNames []string
+		for _, v := range g {
+			gNames = append(gNames, v.Name)
+		}
+		gStr := strings.Join(gNames, "\n")
+		gField := discord.EmbedField{Name: "Gladiators", Value: gStr, Inline: false}
+		fields = append(fields, gField)
+	}
+
+	embed := discord.Embed{
+		Title:  "Manager " + m.Name,
+		Type:   discord.NormalEmbed,
+		Fields: fields,
 	}
 
 	return embed
