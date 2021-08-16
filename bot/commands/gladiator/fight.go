@@ -8,7 +8,7 @@ import (
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
-	"github.com/wihrt/idle_arena/arena"
+	"github.com/wihrt/idle_arena/arena/client"
 	"github.com/wihrt/idle_arena/bot/utils"
 	"github.com/wihrt/idle_arena/fight"
 	"go.uber.org/zap"
@@ -18,11 +18,11 @@ func FightGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionResp
 	var (
 		mID  = utils.GenerateManagerID(e)
 		url  = os.Getenv("ARENA_URL")
-		a    = arena.NewClient(url)
+		c    = client.NewClient(url)
 		data api.InteractionResponse
 	)
 
-	g, err := a.GetGladiators(mID)
+	g, err := c.GetGladiators(mID)
 	if err != nil {
 		zap.L().Error("Cannot get gladiators",
 			zap.String("managerID", mID),
@@ -49,7 +49,7 @@ func FightGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 	var (
 		mID        = utils.GenerateManagerID(e)
 		url        = os.Getenv("ARENA_URL")
-		a          = arena.NewClient(url)
+		a          = client.NewClient(url)
 		data       api.InteractionResponse
 		eArray     []discord.Embed
 		difficulty = strings.Split(e.Data.CustomID, "_")[0]

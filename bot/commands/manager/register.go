@@ -6,7 +6,7 @@ import (
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
-	"github.com/wihrt/idle_arena/arena"
+	"github.com/wihrt/idle_arena/arena/client"
 	"github.com/wihrt/idle_arena/bot/utils"
 	"go.uber.org/zap"
 )
@@ -16,11 +16,11 @@ func RegisterManager(e *gateway.InteractionCreateEvent) (api.InteractionResponse
 	var (
 		mID  = utils.GenerateManagerID(e)
 		url  = os.Getenv("ARENA_URL")
-		a    = arena.NewClient(url)
+		c    = client.NewClient(url)
 		data api.InteractionResponse
 	)
 
-	_, err := a.RegisterManager(mID)
+	_, err := c.RegisterManager(mID)
 	if err != nil {
 		zap.L().Error("Cannot register manager",
 			zap.String("UserID", e.Member.User.ID.String()),

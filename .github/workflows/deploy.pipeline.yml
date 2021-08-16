@@ -55,7 +55,7 @@ jobs:
           build-args: |-
             "GOBINARY=${{ env.GOBINARY }}"
             "GOFILE=${{ env.GOFILE }}"
-      
+
   docker-backend:
     name: "Build and Push Docker backend image"
     runs-on: ubuntu-latest
@@ -148,7 +148,7 @@ jobs:
             "GOBINARY=${{ env.GOBINARY }}"
             "GOFILE=${{ env.GOFILE }}"
 
-  
+
   docker-ansible:
     name: "Pull or build Ansible docker image"
     runs-on: ubuntu-latest
@@ -160,10 +160,10 @@ jobs:
     - name: Build Ansible Docker image
       working-directory: _deploy/ansible
       run: |-
-        docker pull ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} || 
-        (docker build --build-arg ANSIBLE_VERSION=${{ env.ANSIBLE_VERSION }} -t ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} . && 
+        docker pull ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} ||
+        (docker build --build-arg ANSIBLE_VERSION=${{ env.ANSIBLE_VERSION }} -t ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} . &&
         docker push ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }})
-  
+
   ansible:
     name: "Prepare environment"
     runs-on: ubuntu-latest
@@ -185,7 +185,7 @@ jobs:
         chmod 0600 $PRIVATE_KEY
     - name: Install prerequistes on server
       working-directory: _deploy/ansible
-      run: |- 
+      run: |-
         ansible-playbook -e "target=$TARGET_HOST" -e "target_user=$TARGET_USER" -e "private_key=$PRIVATE_KEY" -t remote,k3s,kubectl,helm,kubeconfig playbook.yml
     - name: Upload kubeconfig file
       uses: actions/upload-artifact@v2
@@ -193,7 +193,7 @@ jobs:
         name: kubeconfig
         path: _deploy/ansible/kubeconfig
         retention-days: 1
-  
+
   helmfile:
     name: "Deploy application"
     needs:
@@ -234,7 +234,7 @@ jobs:
       run: |-
         helmfile -e $ENVIRONMENT destroy
         kubectl delete ns arena-$ENVIRONMENT
-        helmfile -e $ENVIRONMENT sync 
+        helmfile -e $ENVIRONMENT sync
     - name: Run Helmfile - Production
       working-directory: helmfile
       if: github.ref == 'refs/heads/main'
@@ -243,7 +243,7 @@ jobs:
         ENVIRONMENT: production
       run: |-
         helmfile -e $ENVIRONMENT sync
-  
+
   remove-artifact:
     name: "Remove artifacts"
     runs-on: ubuntu-latest

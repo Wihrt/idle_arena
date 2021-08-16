@@ -9,7 +9,7 @@ import (
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
-	"github.com/wihrt/idle_arena/arena"
+	"github.com/wihrt/idle_arena/arena/client"
 	"github.com/wihrt/idle_arena/bot/utils"
 	"go.uber.org/zap"
 )
@@ -18,11 +18,11 @@ func FireGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionRespo
 	var (
 		mID  = utils.GenerateManagerID(e)
 		url  = os.Getenv("ARENA_URL")
-		a    = arena.NewClient(url)
+		c    = client.NewClient(url)
 		data api.InteractionResponse
 	)
 
-	g, err := a.GetGladiators(mID)
+	g, err := c.GetGladiators(mID)
 	if err != nil {
 		zap.L().Error("Cannot get gladiators",
 			zap.String("managerID", mID),
@@ -49,14 +49,14 @@ func FireGladiators(e *gateway.InteractionCreateEvent) (api.InteractionResponse,
 	var (
 		mID  = utils.GenerateManagerID(e)
 		url  = os.Getenv("ARENA_URL")
-		a    = arena.NewClient(url)
+		c    = client.NewClient(url)
 		data api.InteractionResponse
 		msg  = "Your gladiators %s have been fired !"
 	)
 
 	for _, v := range e.Data.Values {
 		gID := utils.GenerateGladiatorID(mID, v)
-		err := a.FireGladiator(mID, gID)
+		err := c.FireGladiator(mID, gID)
 		if err != nil {
 			zap.L().Error("Cannot fire gladiator",
 				zap.String("managerID", mID),

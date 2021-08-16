@@ -8,7 +8,7 @@ import (
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
-	"github.com/wihrt/idle_arena/arena"
+	"github.com/wihrt/idle_arena/arena/client"
 	"github.com/wihrt/idle_arena/bot/utils"
 	"go.uber.org/zap"
 )
@@ -21,7 +21,7 @@ func HireGladiator(e *gateway.InteractionCreateEvent) (api.InteractionResponse, 
 		eArray    []discord.Embed
 		mID       = utils.GenerateManagerID(e)
 		url       = os.Getenv("ARENA_URL")
-		a         = arena.NewClient(url)
+		a         = client.NewClient(url)
 		data      api.InteractionResponse
 	)
 
