@@ -9,19 +9,8 @@ type MoneyPouch struct {
 
 func NewMoneyPouch(difficulty Difficulty) *MoneyPouch {
 
-	var startingCopper = 100
-
-	switch difficulty {
-	case DifficultyEasy:
-		startingCopper = 25
-	case DifficultyNormal:
-		startingCopper = 50
-	case DifficultyHard:
-		startingCopper = 100
-	}
-
 	g := &MoneyPouch{
-		TotalPieces: startingCopper,
+		TotalPieces: 0,
 	}
 	return g
 }
@@ -31,11 +20,11 @@ func (m *MoneyPouch) ConvertPieces() {
 	m.CopperPieces = m.TotalPieces
 	m.SilverPieces = 0
 	m.GoldPieces = 0
-	m.convertCopperPieces()
+	m.convertGoldPieces()
 	m.convertSilverPieces()
 }
 
-func (m *MoneyPouch) convertCopperPieces() {
+func (m *MoneyPouch) convertSilverPieces() {
 	for {
 		if m.CopperPieces < 10 {
 			break
@@ -46,13 +35,13 @@ func (m *MoneyPouch) convertCopperPieces() {
 	}
 }
 
-func (m *MoneyPouch) convertSilverPieces() {
+func (m *MoneyPouch) convertGoldPieces() {
 	for {
-		if m.SilverPieces < 10 {
+		if m.CopperPieces < 100 {
 			break
 		} else {
 			m.GoldPieces += 1
-			m.SilverPieces -= 10
+			m.CopperPieces -= 100
 		}
 	}
 }
