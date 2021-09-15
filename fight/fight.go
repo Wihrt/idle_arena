@@ -51,10 +51,10 @@ func ResolveFight(m *manager.Manager, g *gladiator.Gladiator, c *mongo.Client, s
 	g.Health.Current = g.Health.Max
 
 	if fightWon {
-		expGained := dice.Roll(int(s.Difficulty)+1, 20, -1)
-		g.Experience.Current += expGained * int(m.Difficulty)
-		moneyGained := int(s.Difficulty)*10 + dice.Roll(1, 20, -1)
-		fightResult.MoneyGained = moneyGained * int(m.Difficulty)
+		expGained := ExperienceGained(m, s)
+		g.Experience.Current += expGained
+		moneyGained := GoldGained(m, s)
+		fightResult.MoneyGained = moneyGained
 	}
 
 	if g.Experience.Current >= g.Experience.NextLevel {
