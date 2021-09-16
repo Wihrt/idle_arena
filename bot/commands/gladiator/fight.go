@@ -2,6 +2,7 @@ package commands
 
 import (
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/diamondburned/arikawa/v3/api"
@@ -39,7 +40,15 @@ func FightGladiatorsMenu(e *gateway.InteractionCreateEvent) (api.InteractionResp
 		}
 	} else {
 
-		menu := utils.GladiatorSelectMenu(g, e.Data.Options[0].Name+"_fight_gladiator_menu", 1)
+		difficulty, err := strconv.Unquote(e.Data.Options[0].Value.String())
+		if err != nil {
+			zap.L().Fatal("Cannot unquote this",
+				zap.String("value", string(e.Data.Options[0].Value)))
+		}
+		menuName := difficulty + "_fight_gladiator_menu"
+		zap.L().Debug("Generating menu name",
+			zap.String("menu name", menuName))
+		menu := utils.GladiatorSelectMenu(g, menuName, 1)
 		components := utils.ComponentsWrapper([]discord.Component{menu})
 
 		data = api.InteractionResponse{

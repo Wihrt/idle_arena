@@ -35,41 +35,57 @@ var RegisteredCommands = []api.CreateCommandData{
 	},
 	{
 		Name:        "show",
-		Description: "Show your gladiator(s)",
+		Description: "Show your manager/gladiators",
+		Options: []discord.CommandOption{
+			{
+				Type:        discord.StringOption,
+				Name:        "type",
+				Description: "Select what you want to show",
+				Required:    true,
+				Choices: []discord.CommandOptionChoice{
+					{
+						Name:  "Manager",
+						Value: "manager",
+					},
+					{
+						Name:  "Gladiators",
+						Value: "gladiators",
+					},
+				},
+			},
+		},
 	},
 	{
 		Name:        "fight",
 		Description: "Make your gladiator performs a fight",
 		Options: []discord.CommandOption{
 			{
-				Type:        discord.SubcommandOption,
-				Name:        "easy",
-				Description: "Fight an easy enemy",
-			},
-			{
-				Type:        discord.SubcommandOption,
-				Name:        "normal",
-				Description: "Fight an normal enemy",
-			},
-			{
-				Type:        discord.SubcommandOption,
-				Name:        "hard",
-				Description: "Fight a difficult enemy",
-			},
-			{
-				Type:        discord.SubcommandOption,
-				Name:        "challenging",
-				Description: "Fight a challenging enemy",
-			},
-			{
-				Type:        discord.SubcommandOption,
-				Name:        "nightmarish",
-				Description: "Fight a nightmarish enemy",
-			},
-			{
-				Type:        discord.SubcommandOption,
-				Name:        "hellish",
-				Description: "Fight a hellish enemy",
+				Type:        discord.StringOption,
+				Name:        "difficulty",
+				Description: "Difficulty of the fight",
+				Required:    true,
+				Choices: []discord.CommandOptionChoice{
+					{
+						Name:  "Easy",
+						Value: "easy",
+					},
+					{
+						Name:  "Normal",
+						Value: "normal",
+					},
+					{
+						Name:  "Hard",
+						Value: "hard",
+					},
+					{
+						Name:  "Challenging",
+						Value: "challenging",
+					},
+					{
+						Name:  "Nightmarish",
+						Value: "nightmarish",
+					},
+				},
 			},
 		},
 	},
@@ -108,7 +124,13 @@ func HandleInteraction(e *gateway.InteractionCreateEvent) (api.InteractionRespon
 	case "hire":
 		data, err = gcommands.HireGladiator(e)
 	case "show":
-		data, err = gcommands.ShowGladiatorsMenu(e)
+		value, _ := strconv.Unquote(e.Data.Options[0].Value.String())
+		switch value {
+		case "manager":
+			data, err = mcommands.ShowManager(e)
+		case "gladiators":
+			data, err = gcommands.ShowGladiatorsMenu(e)
+		}
 	case "fight":
 		data, err = gcommands.FightGladiatorsMenu(e)
 	case "fire":

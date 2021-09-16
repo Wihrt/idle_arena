@@ -9,6 +9,7 @@ import (
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
 	"github.com/wihrt/idle_arena/arena/client"
 	"github.com/wihrt/idle_arena/bot/utils"
+	"github.com/wihrt/idle_arena/manager"
 	"go.uber.org/zap"
 )
 
@@ -48,7 +49,9 @@ func RegisterManager(e *gateway.InteractionCreateEvent) (api.InteractionResponse
 		difficulty = 2
 	}
 
-	_, err := c.RegisterManager(mID, difficulty)
+	manager.GenerateID(e.GuildID.String(), e.Member.User.ID.String())
+
+	_, err := c.RegisterManager(mID, e.Member.Nick, e.GuildID, difficulty)
 	if err != nil {
 		zap.L().Error("Cannot register manager",
 			zap.String("UserID", e.Member.User.ID.String()),

@@ -5,6 +5,8 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 var onlyOnce sync.Once
@@ -15,6 +17,12 @@ func Roll(number int, dice int, keep_highest int) int {
 		seq     = make([]int, number)
 		results []int
 		result  int
+	)
+
+	zap.L().Debug("Rolling dices",
+		zap.Int("Number of dices", number),
+		zap.Int("Number of faces", dice),
+		zap.Int("Keep Highest", keep_highest),
 	)
 
 	onlyOnce.Do(func() {
@@ -33,6 +41,10 @@ func Roll(number int, dice int, keep_highest int) int {
 	} else {
 		result = Sum(results)
 	}
+
+	zap.L().Debug("Result of roll",
+		zap.Int("result", result),
+	)
 
 	return result
 }

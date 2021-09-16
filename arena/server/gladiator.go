@@ -20,6 +20,7 @@ func (s *Server) NewGladiator(w http.ResponseWriter, r *http.Request) {
 	var (
 		splittedURL = strings.Split(r.RequestURI, "/")
 		managerID   = splittedURL[len(splittedURL)-2]
+		hiringCost  = 0
 	)
 
 	m, err := s.getManager(managerID)
@@ -37,6 +38,17 @@ func (s *Server) NewGladiator(w http.ResponseWriter, r *http.Request) {
 			zap.Error(err),
 		)
 		w.WriteHeader(500)
+		return
+	}
+
+	if len(m.Gladiators) == 0 {
+		hiringCost = 0
+	} else {
+		hiringCost = 10
+	}
+
+	if m.MoneyPouch.TotalPieces < hiringCost {
+		w.WriteHeader(400)
 		return
 	}
 
@@ -62,6 +74,8 @@ func (s *Server) NewGladiator(w http.ResponseWriter, r *http.Request) {
 	}
 
 	m.Gladiators = append(m.Gladiators, g.GladiatorID)
+	m.MoneyPouch.TotalPieces -= hiringCost
+
 	err = s.updateManager(m)
 	if err != nil {
 		zap.L().Error("Cannot update manager",
@@ -214,7 +228,7 @@ func (s *Server) FightGladiator(w http.ResponseWriter, r *http.Request) {
 		settings    fight.Settings
 	)
 
-	_, err := s.getManager(managerID)
+	m, err := s.getManager(managerID)
 	if err == mongo.ErrNoDocuments {
 		zap.L().Error("No manager found",
 			zap.String("managerID", managerID),
@@ -270,7 +284,7 @@ func (s *Server) FightGladiator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fightResult, err := fight.ResolveFight(g, &s.Mongo, &settings)
+	fightResult, err := fight.ResolveFight(m, g, &s.Mongo, &settings)
 	if err != nil {
 		zap.L().Error("Cannot fight gladiator",
 			zap.String("managerID", managerID),
@@ -286,6 +300,17 @@ func (s *Server) FightGladiator(w http.ResponseWriter, r *http.Request) {
 		zap.L().Error("Cannot update gladiator",
 			zap.String("managerID", managerID),
 			zap.String("gladiatorID", gladiatorID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	m.MoneyPouch.TotalPieces += fightResult.MoneyGained
+	err = s.updateManager(m)
+	if err != nil {
+		zap.L().Error("Cannot update manager",
+			zap.String("managerID", managerID),
 			zap.Error(err),
 		)
 		w.WriteHeader(500)

@@ -3,24 +3,28 @@ package fight
 import (
 	"github.com/wihrt/idle_arena/dice"
 	"github.com/wihrt/idle_arena/gladiator"
+	"github.com/wihrt/idle_arena/manager"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
 type Result struct {
-	FightWon       bool                 `json:"fight_won"`
-	KilledInCombat bool                 `json:"killed_in_combat"`
-	Gladiator      *gladiator.Gladiator `json:"gladiator"`
-	Enemy          *gladiator.Gladiator `json:"enemy"`
+	FightWon         bool                 `json:"fight_won"`
+	KilledInCombat   bool                 `json:"killed_in_combat"`
+	MoneyGained      int                  `json:"money_gained"`
+	ExperienceGained int                  `json:"experience_gained"`
+	Gladiator        *gladiator.Gladiator `json:"gladiator"`
+	Enemy            *gladiator.Gladiator `json:"enemy"`
 }
 
-func ResolveFight(g *gladiator.Gladiator, m *mongo.Client, s *Settings) (*Result, error) {
+func ResolveFight(m *manager.Manager, g *gladiator.Gladiator, c *mongo.Client, s *Settings) (*Result, error) {
 	var fightResult = &Result{
 		FightWon:       false,
 		KilledInCombat: false,
+		MoneyGained:    0,
 		Gladiator:      g}
 
-	fightWon, enemy, err := Fight(g, m, s)
+	fightWon, enemy, err := Fight(g, c, s)
 	if err != nil {
 		zap.L().Error("Error when generating fight",
 			zap.Error(err),
@@ -46,9 +50,13 @@ func ResolveFight(g *gladiator.Gladiator, m *mongo.Client, s *Settings) (*Result
 	fightResult.FightWon = fightWon
 	fightResult.Enemy = enemy
 	g.Health.Current = g.Health.Max
+
 	if fightWon {
-		expGained := dice.Roll(int(s.Difficulty)+1, 20, -1)
+		expGained := ExperienceGained(m, s)
 		g.Experience.Current += expGained
+		fightResult.ExperienceGained = expGained
+		moneyGained := GoldGained(m, s)
+		fightResult.MoneyGained = moneyGained
 	}
 
 	if g.Experience.Current >= g.Experience.NextLevel {

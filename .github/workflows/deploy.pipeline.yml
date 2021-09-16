@@ -8,6 +8,8 @@ on:
 env:
   DOCKER_USER: megalooo
   ANSIBLE_VERSION: "4.3.0"
+  WORKDIR_ANSIBLE: "_deploy/ansible"
+  WORKDIR_HELMFILE: "_deploy/helmfile"
 
 jobs:
   docker-bot:
@@ -158,7 +160,7 @@ jobs:
     - name: Docker login
       run: docker login -u ${{ env.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}
     - name: Build Ansible Docker image
-      working-directory: _deploy/ansible
+      working-directory: ${{ env.WORKDIR_ANSIBLE }}
       run: |-
         docker pull ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} ||
         (docker build --build-arg ANSIBLE_VERSION=${{ env.ANSIBLE_VERSION }} -t ${{ env.DOCKER_USER }}/ansible:${{ env.ANSIBLE_VERSION }} . &&
@@ -179,12 +181,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
     - name: Decrypt private key
-      working-directory: _deploy/ansible
+      working-directory: ${{ env.WORKDIR_ANSIBLE }}
       run: |-
         echo "${{ secrets.SSH_KEY }}" > $PRIVATE_KEY
         chmod 0600 $PRIVATE_KEY
     - name: Install prerequistes on server
-      working-directory: _deploy/ansible
+      working-directory: ${{ env.WORKDIR_ANSIBLE }}
       run: |-
         ansible-playbook -e "target=$TARGET_HOST" -e "target_user=$TARGET_USER" -e "private_key=$PRIVATE_KEY" -t remote,k3s,kubectl,helm,kubeconfig playbook.yml
     - name: Upload kubeconfig file
@@ -226,7 +228,7 @@ jobs:
         helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.2
         helm plugin install https://github.com/databus23/helm-diff
     - name: Run Helmfile - Develop
-      working-directory: helmfile
+      working-directory: ${{ env.WORKDIR_HELMFILE }}
       if: github.ref == 'refs/heads/develop'
       env:
         KUBECONFIG: ../kubeconfig
@@ -236,7 +238,7 @@ jobs:
         kubectl delete ns arena-$ENVIRONMENT
         helmfile -e $ENVIRONMENT sync
     - name: Run Helmfile - Production
-      working-directory: helmfile
+      working-directory: ${{ env.WORKDIR_HELMFILE }}
       if: github.ref == 'refs/heads/main'
       env:
         KUBECONFIG: ../kubeconfig

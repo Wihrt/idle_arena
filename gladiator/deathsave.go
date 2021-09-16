@@ -14,11 +14,11 @@ func NewDeathSave(difficulty manager.Difficulty) *DeathSave {
 
 	switch difficulty {
 	case manager.DifficultyEasy:
-		d.Max = 5
+		d.Max = 6
 	case manager.DifficultyNormal:
-		d.Max = 3
+		d.Max = 4
 	case manager.DifficultyHard:
-		d.Max = 1
+		d.Max = 2
 	}
 	return d
 }
