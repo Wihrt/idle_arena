@@ -126,7 +126,8 @@ func FightToEmbed(f fight.Result) discord.Embed {
 			URL: thumbnailUrl,
 		},
 		Fields: []discord.EmbedField{
-			{Name: "Money gained", Value: strconv.Itoa(f.MoneyGained), Inline: false},
+			{Name: "Money gained", Value: strconv.Itoa(f.MoneyGained), Inline: true},
+			{Name: "Experience gained", Value: strconv.Itoa(f.ExperienceGained), Inline: true},
 			{Name: "Enemy level", Value: strconv.Itoa(f.Enemy.Experience.Level), Inline: false},
 			{Name: "Enemy " + f.Enemy.Strength.Name, Value: strconv.Itoa(f.Enemy.Strength.Value), Inline: true},
 			{Name: "Enemy " + f.Enemy.Dexterity.Name, Value: strconv.Itoa(f.Enemy.Dexterity.Value), Inline: true},

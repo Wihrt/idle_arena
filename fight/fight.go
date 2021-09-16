@@ -9,11 +9,12 @@ import (
 )
 
 type Result struct {
-	FightWon       bool                 `json:"fight_won"`
-	KilledInCombat bool                 `json:"killed_in_combat"`
-	MoneyGained    int                  `json:"money_gained"`
-	Gladiator      *gladiator.Gladiator `json:"gladiator"`
-	Enemy          *gladiator.Gladiator `json:"enemy"`
+	FightWon         bool                 `json:"fight_won"`
+	KilledInCombat   bool                 `json:"killed_in_combat"`
+	MoneyGained      int                  `json:"money_gained"`
+	ExperienceGained int                  `json:"experience_gained"`
+	Gladiator        *gladiator.Gladiator `json:"gladiator"`
+	Enemy            *gladiator.Gladiator `json:"enemy"`
 }
 
 func ResolveFight(m *manager.Manager, g *gladiator.Gladiator, c *mongo.Client, s *Settings) (*Result, error) {
@@ -53,6 +54,7 @@ func ResolveFight(m *manager.Manager, g *gladiator.Gladiator, c *mongo.Client, s
 	if fightWon {
 		expGained := ExperienceGained(m, s)
 		g.Experience.Current += expGained
+		fightResult.ExperienceGained = expGained
 		moneyGained := GoldGained(m, s)
 		fightResult.MoneyGained = moneyGained
 	}
