@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wihrt/idle_arena/fight"
+	"github.com/wihrt/idle_arena/actions/fight"
 	"github.com/wihrt/idle_arena/gladiator"
 	"github.com/wihrt/idle_arena/utils"
 	"go.mongodb.org/mongo-driver/bson"
@@ -333,6 +333,101 @@ func (s *Server) FightGladiator(w http.ResponseWriter, r *http.Request) {
 			zap.Error(err),
 		)
 	}
+}
+
+func (s *Server) HealGladiator(w http.ResponseWriter, r *http.Request) {
+
+	var (
+		splittedURL = strings.Split(r.RequestURI, "/")
+		managerID   = splittedURL[len(splittedURL)-4]
+		gladiatorID = splittedURL[len(splittedURL)-2]
+		healCost    int
+	)
+
+	m, err := s.getManager(managerID)
+	if err == mongo.ErrNoDocuments {
+		zap.L().Error("No manager found",
+			zap.String("managerID", managerID),
+			zap.Error(err),
+		)
+		w.WriteHeader(404)
+		return
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		zap.L().Error("Cannot find manager",
+			zap.String("managerID", managerID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	g, err := s.getGladiator(managerID, gladiatorID)
+	if err == mongo.ErrNoDocuments {
+		zap.L().Error("No gladiator found",
+			zap.String("managerID", managerID),
+			zap.String("gladiatorID", gladiatorID),
+			zap.Error(err),
+		)
+		w.WriteHeader(404)
+		return
+	}
+	if err != nil && err != mongo.ErrNoDocuments {
+		zap.L().Error("Cannot search gladiator",
+			zap.String("managerID", managerID),
+			zap.String("gladiatorID", gladiatorID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	healCost = (g.Experience.Level * 5) * int(m.Multiplier)
+	if m.MoneyPouch.TotalPieces < healCost {
+		w.WriteHeader(400)
+		return
+	}
+
+	g.DeathSave.Current = 0
+	err = s.updateGladiator(g)
+	if err != nil {
+		zap.L().Error("Cannot update gladiator",
+			zap.String("managerID", managerID),
+			zap.String("gladiatorID", gladiatorID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	m.MoneyPouch.TotalPieces -= healCost
+	err = s.updateManager(m)
+	if err != nil {
+		zap.L().Error("Cannot update manager",
+			zap.String("managerID", managerID),
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	data, err := json.Marshal(g)
+	if err != nil {
+		zap.L().Error("Cannot marshal fight result",
+			zap.Error(err),
+		)
+		w.WriteHeader(500)
+		return
+	}
+
+	w.WriteHeader(200)
+	_, err = w.Write(data)
+	if err != nil {
+		zap.L().Error("Cannot write data",
+			zap.Error(err),
+		)
+	}
+
 }
 
 func (s *Server) DeleteGladiator(w http.ResponseWriter, r *http.Request) {

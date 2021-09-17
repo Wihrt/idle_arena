@@ -14,6 +14,7 @@ type Manager struct {
 	Difficulty Difficulty      `json:"difficulty" bson:"difficulty"`
 	MoneyPouch *MoneyPouch     `json:"money_pouch"`
 	Gladiators []string        `json:"gladiators" bson:"gladiators"`
+	Multiplier float64         `json:"multiplier" bson:"multiplier"`
 }
 
 func NewManager(managerID string, name string, guildID discord.GuildID, difficulty int) (*Manager, error) {
@@ -23,12 +24,13 @@ func NewManager(managerID string, name string, guildID discord.GuildID, difficul
 		ManagerID: managerID,
 	}
 
-	d, err := ParseDifficulty(difficulty)
+	d, mul, err := ParseDifficulty(difficulty)
 	if err != nil {
 		return m, err
 	}
 
 	m.Difficulty = d
+	m.Multiplier = mul
 	m.MoneyPouch = NewMoneyPouch(d)
 
 	return m, nil
