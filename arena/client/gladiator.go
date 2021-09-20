@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/levigross/grequests"
+	"github.com/wihrt/idle_arena/actions/fight"
 	"github.com/wihrt/idle_arena/arena/errors"
-	"github.com/wihrt/idle_arena/fight"
 	"github.com/wihrt/idle_arena/gladiator"
 	"github.com/wihrt/idle_arena/utils"
 	"go.uber.org/zap"
@@ -216,6 +216,44 @@ func (c *Client) FightGladiator(mID string, gID string, s *fight.Settings) (figh
 	}
 
 	return f, nil
+}
+
+func (c *Client) HealGladiator(mID string, gID string) error {
+	var (
+		url     = []string{c.URL, utils.APIBase, "managers", mID, "gladiators", gID, "heal"}
+		fullURL = strings.Join(url, "/")
+	)
+
+	zap.L().Info("Fight gladiator",
+		zap.String("ManagerID", mID),
+		zap.String("GladiatorID", gID),
+		zap.String("URL", fullURL),
+	)
+
+	res, err := grequests.Put(fullURL, &grequests.RequestOptions{
+		RequestTimeout: 5 * time.Second,
+	})
+
+	if err != nil {
+		zap.L().Error("Cannot heal gladiator",
+			zap.String("ManagerID", mID),
+			zap.String("GladiatorID", gID),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	if !res.Ok {
+		zap.L().Error("Cannot heal gladiator",
+			zap.String("ManagerID", mID),
+			zap.String("GladiatorID", gID),
+			zap.Int("status code", res.StatusCode),
+			zap.Error(ErrWrongStatusCode),
+		)
+		return ErrWrongStatusCode
+	}
+
+	return nil
 }
 
 func (c *Client) FireGladiator(mID string, gID string) error {

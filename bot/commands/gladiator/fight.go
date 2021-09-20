@@ -9,9 +9,9 @@ import (
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
+	"github.com/wihrt/idle_arena/actions/fight"
 	"github.com/wihrt/idle_arena/arena/client"
 	"github.com/wihrt/idle_arena/bot/utils"
-	"github.com/wihrt/idle_arena/fight"
 	"go.uber.org/zap"
 )
 

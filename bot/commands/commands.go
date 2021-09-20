@@ -90,6 +90,10 @@ var RegisteredCommands = []api.CreateCommandData{
 		},
 	},
 	{
+		Name:        "heal",
+		Description: "Heal your gladiator (reset death saves to 0)",
+	},
+	{
 		Name:        "fire",
 		Description: "Fire your gladiator(s)",
 	},
@@ -135,6 +139,8 @@ func HandleInteraction(e *gateway.InteractionCreateEvent) (api.InteractionRespon
 		data, err = gcommands.FightGladiatorsMenu(e)
 	case "fire":
 		data, err = gcommands.FireGladiatorsMenu(e)
+	case "heal":
+		data, err = gcommands.HealGladiatorsMenu(e)
 	}
 
 	// Here are the Component Interaction Response
@@ -154,6 +160,8 @@ func HandleInteraction(e *gateway.InteractionCreateEvent) (api.InteractionRespon
 		data, err = gcommands.FightGladiator(e)
 	case "fire_gladiator_menu":
 		data, err = gcommands.FireGladiators(e)
+	case "heal_gladiator_menu":
+		data, err = gcommands.HealGladiators(e)
 	}
 
 	if err != nil {
