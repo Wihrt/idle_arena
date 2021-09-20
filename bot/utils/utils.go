@@ -7,7 +7,7 @@ import (
 
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
-	"github.com/wihrt/idle_arena/fight"
+	"github.com/wihrt/idle_arena/actions/fight"
 	"github.com/wihrt/idle_arena/gladiator"
 	"github.com/wihrt/idle_arena/manager"
 )

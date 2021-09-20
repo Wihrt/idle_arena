@@ -11,16 +11,16 @@ const (
 	DifficultyHard    Difficulty = 3
 )
 
-func ParseDifficulty(difficulty int) (Difficulty, error) {
+func ParseDifficulty(difficulty int) (Difficulty, float64, error) {
 
 	switch difficulty {
 	case 0:
-		return DifficultyEasy, nil
+		return DifficultyEasy, 0.5, nil
 	case 1:
-		return DifficultyNormal, nil
+		return DifficultyNormal, 1, nil
 	case 2:
-		return DifficultyHard, nil
+		return DifficultyHard, 1.5, nil
 	default:
-		return DifficultyUnknown, errors.New("unknown difficulty")
+		return DifficultyUnknown, 1, errors.New("unknown difficulty")
 	}
 }

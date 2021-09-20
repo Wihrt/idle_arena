@@ -40,6 +40,7 @@ func main() {
 	router.HandleFunc(strings.Join([]string{APIBase, "managers", "{id}", "gladiators", "{id}"}, "/"), a.GetGladiator).Methods("GET")
 	router.HandleFunc(strings.Join([]string{APIBase, "managers", "{id}", "gladiators"}, "/"), a.NewGladiator).Methods("POST")
 	router.HandleFunc(strings.Join([]string{APIBase, "managers", "{id}", "gladiators", "{id}", "fight"}, "/"), a.FightGladiator).Methods("POST")
+	router.HandleFunc(strings.Join([]string{APIBase, "managers", "{id}", "gladiators", "{id}", "heal"}, "/"), a.HealGladiator).Methods("PUT")
 	router.HandleFunc(strings.Join([]string{APIBase, "managers", "{id}", "gladiators", "{id}"}, "/"), a.DeleteGladiator).Methods("DELETE")
 
 	zap.L().Fatal("Error when serving",
