@@ -231,7 +231,7 @@ jobs:
       working-directory: ${{ env.WORKDIR_HELMFILE }}
       if: github.ref == 'refs/heads/develop'
       env:
-        KUBECONFIG: ../kubeconfig
+        KUBECONFIG: ../../kubeconfig
         ENVIRONMENT: develop
       run: |-
         helmfile -e $ENVIRONMENT destroy
@@ -241,7 +241,7 @@ jobs:
       working-directory: ${{ env.WORKDIR_HELMFILE }}
       if: github.ref == 'refs/heads/main'
       env:
-        KUBECONFIG: ../kubeconfig
+        KUBECONFIG: ../../kubeconfig
         ENVIRONMENT: production
       run: |-
         helmfile -e $ENVIRONMENT sync
