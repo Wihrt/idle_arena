@@ -253,9 +253,7 @@ jobs:
       - helmfile
     steps:
       - name: Remove kubeconfig artifact
-        uses: jimschubert/delete-artifacts-action@v1
+        uses: geekyeggo/delete-artifact@v1
         with:
-          log_level: "debug"
-          artifact_name: "kubeconfig"
-          min_bytes: "0"
+          name: kubeconfig
 
